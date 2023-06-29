@@ -1,8 +1,10 @@
 using ShareInstances;
 using ShareInstances.Instances;
 
-namespace Cube;
+using System;
+using System.Collections.Generic;
 
+namespace Cube;
 public class Cube : ICube
 {
     public Guid CubeId => Guid.NewGuid();
