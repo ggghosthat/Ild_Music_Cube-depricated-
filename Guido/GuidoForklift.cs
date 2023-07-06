@@ -45,8 +45,12 @@ public class GuidoForklift //Cars from pixar (lol)
     {
         if (entity is Artist artist)
         {
-            // using var connection = new SQLiteConnection(connectionString.ToString());
-            // connection.Execute("", );
+        }
+        else if(entity is Playlist playlist)
+        {            
+        }
+        else if(entity is Track track)
+        {
         }
     }
 

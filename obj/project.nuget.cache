@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "86/zQIAlZjfkGVZSKWuDMOd6C4ttT2qvPBwMQXXxOU646t95aGB97yqgyQgch9084Pii9fTscwMf2ABGU4ZysA==",
+  "dgSpecHash": "fVvfMnPHB72BjJhbUAcHeaWNWqHYhVmJXlBcCIr6qtqzhzi0ZtCcI+pl5K7zz8dsWqx57IZm7k36eAPhV9qWDg==",
   "success": true,
   "projectFilePath": "D:\\repos\\Ild-Music.Cube\\Ild-Music.Cube.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\LEYA\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\LEYA\\.nuget\\packages\\dapper\\2.0.143\\dapper.2.0.143.nupkg.sha512",
     "C:\\Users\\LEYA\\.nuget\\packages\\entityframework\\6.4.4\\entityframework.6.4.4.nupkg.sha512",
     "C:\\Users\\LEYA\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
