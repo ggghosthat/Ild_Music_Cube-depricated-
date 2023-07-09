@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 namespace Cube.Mapper.Entities;
-public struct Store
+public struct Store : IMappable
 {
     public int Tag {get; set;}
     public ICollection<Pair> Pairs {get; set;} = new List<Pair>();

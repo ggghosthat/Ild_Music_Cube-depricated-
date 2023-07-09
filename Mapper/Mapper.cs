@@ -1,28 +1,22 @@
 using ShareInstances.Instances;
 using Cube.Mapper.Entities;
 
-using System.Collections;
+using System;
+using System.Linq;
+using System.Collections.Concurrent;
 using AutoMapper;
 
 namespace Cube.Mapper;
-public sealed class Mapper
+
+//this class perform mapping operations and has been created to be used within using scopes
+public sealed class Mapper : IDisposable
 {
     private IMapper _mapper;
 
-    private ICollection<ArtistMap> _artistCache = new List<ArtistMap>();
-    private ICollection<PlaylistMap> _playlistCache = new List<PlaylistMap>();
-    private ICollection<TrackMap> _trackCache = new List<TrackMap>();
-
-    private Dictionary<int, List<Store>> _mapCache = new Dictionary<int, List<Store>>()
-    {
-        {1, new List<Store>() },
-        {2, new List<Store>() },
-        {3, new List<Store>() },
-        {4, new List<Store>() },
-        {5, new List<Store>() },
-        {6, new List<Store>() }
-    };
-
+    private IMappable entity;
+    private IList<IMappable> stores;
+    
+    private ConcurrentDictionary<IMappable, IList<IMappable>> multimapStore;
     public Mapper()
     {  
         MapperConfiguration configure = new MapperConfiguration(cfg => 
@@ -33,83 +27,140 @@ public sealed class Mapper
         _mapper = new AutoMapper.Mapper(configure);
     }
 
-    #region Public Methods
-    public void MakeSnapshot<T>(T entity)
+    #region Private Methods
+    private async Task GetMappedStaff<T>(ICollection<T> raws)
     {
+        var opt = new ParallelOptions {MaxDegreeOfParallelism=4};
+        await Parallel.ForEachAsync(raws, opt, async (raw, token) => {
+            if (raw is Artist artist)
+            {
+                var mappedEntity = _mapper.Map<ArtistMap>(artist);
+                
+                var artistPlaylistStore = _mapper.Map<Store>(artist.Playlists);
+                artistPlaylistStore.SetHolder(artist.Id);
+                artistPlaylistStore.Tag = 1;
+
+                var artistTrackStore = _mapper.Map<Store>(artist.Tracks);
+                artistTrackStore.SetHolder(artist.Id);
+                artistTrackStore.Tag = 2;      
+
+                multimapStore.TryAdd(mappedEntity,
+                                     new List<IMappable> {artistPlaylistStore, artistTrackStore});                      
+            }
+            else if(raw is Playlist playlist)
+            {                        
+                var mappedEntity = _mapper.Map<PlaylistMap>(playlist);
+
+                var playlistArtistStore = _mapper.Map<Store>(playlist.Artists);
+                playlistArtistStore.SetHolder(playlist.Id);
+                playlistArtistStore.Tag = 3;
+
+                var playlistTrackStore = _mapper.Map<Store>(playlist.Tracky);
+                playlistTrackStore.SetHolder(playlist.Id);
+                playlistTrackStore.Tag = 4;
+
+                multimapStore.TryAdd(mappedEntity,
+                                     new List<IMappable> {playlistArtistStore, playlistTrackStore});                      
+            }
+            else if(raw is Track track)
+            {
+                var mappedEntity = _mapper.Map<TrackMap>(track);
+
+                var trackArtistStore = _mapper.Map<Store>(track.Artists);
+                trackArtistStore.SetHolder(track.Id);
+                trackArtistStore.Tag = 5;
+
+                var trackPlaylistStore = _mapper.Map<Store>(track.Playlists);
+                trackPlaylistStore.SetHolder(track.Id);
+                trackPlaylistStore.Tag = 6;
+
+                multimapStore.TryAdd(mappedEntity,
+                                     new List<IMappable> {trackArtistStore, trackPlaylistStore});                      
+            }
+        });
+    }
+    #endregion
+
+    #region Public Methods
+    public (IMappable, IList<IMappable>) MakeSnapshot<T>(T entity)
+    {
+        this.stores = new List<IMappable>();
         if (entity is Artist artist)
         {
-            var artistMap = _mapper.Map<ArtistMap>(artist);
+            this.entity = _mapper.Map<ArtistMap>(artist);
             
             var artistPlaylistStore = _mapper.Map<Store>(artist.Playlists);
             artistPlaylistStore.SetHolder(artist.Id);
             artistPlaylistStore.Tag = 1;
 
-            if(artistPlaylistStore.Count > 0)
-            {
-                _mapCache[1].Add(artistPlaylistStore);
-            }
+            this.stores.Add(artistPlaylistStore);
 
             var artistTrackStore = _mapper.Map<Store>(artist.Tracks);
             artistTrackStore.SetHolder(artist.Id);
             artistTrackStore.Tag = 2;
-            
-            if(artistTrackStore.Count > 0)
-            {
-                _mapCache[2].Add(artistTrackStore);
-            }
-
-            _artistCache.Add(artistMap);
+                        
+            this.stores.Add(artistTrackStore);
+            return (this.entity, this.stores);
         }
         else if(entity is Playlist playlist)
-        {            
-            var playlistMap = _mapper.Map<PlaylistMap>(playlist);
+        {                        
+            this.entity = _mapper.Map<PlaylistMap>(playlist);
 
             var playlistArtistStore = _mapper.Map<Store>(playlist.Artists);
             playlistArtistStore.SetHolder(playlist.Id);
             playlistArtistStore.Tag = 3;
             
-            if(playlistArtistStore.Count > 0)
-            {
-                _mapCache[3].Add(playlistArtistStore);
-            }
+            this.stores.Add(playlistArtistStore);
 
             var playlistTrackStore = _mapper.Map<Store>(playlist.Tracky);
             playlistTrackStore.SetHolder(playlist.Id);
             playlistTrackStore.Tag = 4;
             
-            if(playlistTrackStore.Count > 0)
-            {
-                _mapCache[4].Add(playlistTrackStore);
-            }
+            this.stores.Add(playlistTrackStore);
 
-            _playlistCache.Add(playlistMap);
+            return (this.entity, this.stores);
         }
         else if(entity is Track track)
         {
-            var trackMap = _mapper.Map<TrackMap>(track);
+            this.entity = _mapper.Map<TrackMap>(track);
 
             var trackArtistStore = _mapper.Map<Store>(track.Artists);
             trackArtistStore.SetHolder(track.Id);
             trackArtistStore.Tag = 5;
-            
-            if(trackArtistStore.Count > 0)
-            {
-                _mapCache[5].Add(trackArtistStore);
-            }
+                        
+            this.stores.Add(trackArtistStore);
 
             var trackPlaylistStore = _mapper.Map<Store>(track.Playlists);
             trackPlaylistStore.SetHolder(track.Id);
             trackPlaylistStore.Tag = 6;
-            
-            if(trackPlaylistStore.Count > 0)
-            {
-                _mapCache[6].Add(trackPlaylistStore);
-            }
+                        
+            this.stores.Add(trackPlaylistStore);
 
-            _trackCache.Add(trackMap);
+            return (this.entity, this.stores);
         }
+        else return default;
     }
-    
-    public void Clean() => _mapCache.Clear();
+
+    public async Task<IDictionary<IMappable, IList<IMappable>>> MakeSnapshot<T>(ICollection<T> entities)
+    {
+        multimapStore = new ConcurrentDictionary<IMappable, IList<IMappable>>();
+        await GetMappedStaff<T>(entities);
+        return multimapStore.ToDictionary(pair => pair.Key, pair => pair.Value, multimapStore.Comparer);
+    }
+
+    public void Clean()
+    {
+        entity = null;
+        stores = null;
+
+        multimapStore.Clear();
+        multimapStore = null;
+        GC.Collect();
+    }
+
+    public void Dispose() 
+    {
+        Clean();
+    }
     #endregion
 }

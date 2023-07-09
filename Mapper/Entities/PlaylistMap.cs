@@ -1,7 +1,7 @@
 using System;
 
 namespace Cube.Mapper.Entities;
-public record PlaylistMap
+public record PlaylistMap : IMappable
 {
     public byte[] Buid {get; set;}
     public string Name {get; set;}

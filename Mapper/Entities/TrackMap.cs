@@ -1,7 +1,7 @@
 using System;
 
 namespace Cube.Mapper.Entities;
-public record TrackMap
+public record TrackMap : IMappable
 {
     public byte[] Buid {get; set;}
     public string Pathway {get; set;}
