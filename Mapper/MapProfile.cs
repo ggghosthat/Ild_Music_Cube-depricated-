@@ -45,7 +45,7 @@ public sealed class MapProfile : Profile
         var store = new Store(0);
         items.ToList().ForEach(i =>
         {
-            store.Pairs.Add(new Pair(Guid.Empty, i));
+            store.Relates.Add(i);
         });
 
         return store;
@@ -56,7 +56,7 @@ public sealed class MapProfile : Profile
         var store = new Store(0);
         tracks.ToList().ForEach(t =>
         {
-            store.Pairs.Add(new Pair(Guid.Empty, t.Id));
+            store.Relates.Add(t.Id);
         });
 
         return store;

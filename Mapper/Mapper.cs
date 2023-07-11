@@ -14,9 +14,9 @@ public sealed class Mapper : IDisposable
     private IMapper _mapper;
 
     private IMappable entity;
-    private IList<IMappable> stores;
+    private IList<Store> stores;
     
-    private ConcurrentDictionary<IMappable, IList<IMappable>> multimapStore;
+    private ConcurrentDictionary<IMappable, IList<Store>> multimapStore;
     public Mapper()
     {  
         MapperConfiguration configure = new MapperConfiguration(cfg => 
@@ -45,7 +45,7 @@ public sealed class Mapper : IDisposable
                 artistTrackStore.Tag = 2;      
 
                 multimapStore.TryAdd(mappedEntity,
-                                     new List<IMappable> {artistPlaylistStore, artistTrackStore});                      
+                                     new List<Store> {artistPlaylistStore, artistTrackStore});                      
             }
             else if(raw is Playlist playlist)
             {                        
@@ -60,7 +60,7 @@ public sealed class Mapper : IDisposable
                 playlistTrackStore.Tag = 4;
 
                 multimapStore.TryAdd(mappedEntity,
-                                     new List<IMappable> {playlistArtistStore, playlistTrackStore});                      
+                                     new List<Store> {playlistArtistStore, playlistTrackStore});                      
             }
             else if(raw is Track track)
             {
@@ -75,16 +75,16 @@ public sealed class Mapper : IDisposable
                 trackPlaylistStore.Tag = 6;
 
                 multimapStore.TryAdd(mappedEntity,
-                                     new List<IMappable> {trackArtistStore, trackPlaylistStore});                      
+                                     new List<Store> {trackArtistStore, trackPlaylistStore});                      
             }
         });
     }
     #endregion
 
     #region Public Methods
-    public (IMappable, IList<IMappable>) MakeSnapshot<T>(T entity)
+    public (IMappable, IList<Store>) MakeSnapshot<T>(T entity)
     {
-        this.stores = new List<IMappable>();
+        this.stores = new List<Store>();
         if (entity is Artist artist)
         {
             this.entity = _mapper.Map<ArtistMap>(artist);
@@ -141,20 +141,29 @@ public sealed class Mapper : IDisposable
         else return default;
     }
 
-    public async Task<IDictionary<IMappable, IList<IMappable>>> MakeSnapshot<T>(ICollection<T> entities)
+    public async Task<IDictionary<IMappable, IList<Store>>> MakeSnapshot<T>(ICollection<T> entities)
     {
-        multimapStore = new ConcurrentDictionary<IMappable, IList<IMappable>>();
+        multimapStore = new ConcurrentDictionary<IMappable, IList<Store>>();
         await GetMappedStaff<T>(entities);
         return multimapStore.ToDictionary(pair => pair.Key, pair => pair.Value, multimapStore.Comparer);
     }
 
     public void Clean()
     {
-        entity = null;
-        stores = null;
+        if (entity is not null)
+        {
+            entity = null;
+        }
+        if(stores is not null)
+        {
+            stores = null;
+        }
 
-        multimapStore.Clear();
-        multimapStore = null;
+        if (multimapStore is not null)
+        {
+            multimapStore.Clear();
+            multimapStore = null;
+        }
         GC.Collect();
     }
 
