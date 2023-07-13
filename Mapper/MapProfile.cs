@@ -29,13 +29,20 @@ public sealed class MapProfile : Profile
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.ToString()))
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()))
-            .ForMember(dest => dest.IsValid, opt => opt.MapFrom(src => src.IsValid))
-            .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration));
+            .ForMember(dest => dest.IsValid, opt => opt.MapFrom(src => src.IsValid?1:0))
+            .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.TotalMilliseconds));
+
+        CreateMap<Tag, TagMap>()
+            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToByteArray()))
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()));
 
         CreateMap<ICollection<Guid>, Store>()
             .ConvertUsing((src) => GenerateStore(src));
 
         CreateMap<ICollection<Track>, Store>()
+            .ConvertUsing((src) => GenerateStore(src));
+            
+        CreateMap<ICollection<Tag>, Store>()
             .ConvertUsing((src) => GenerateStore(src));
     }
 
@@ -55,6 +62,17 @@ public sealed class MapProfile : Profile
     {
         var store = new Store(0);
         tracks.ToList().ForEach(t =>
+        {
+            store.Relates.Add(t.Id);
+        });
+
+        return store;
+    }
+
+    private Store GenerateStore(ICollection<Tag> tags)
+    {
+        var store = new Store(7);
+        tags.ToList().ForEach(t =>
         {
             store.Relates.Add(t.Id);
         });

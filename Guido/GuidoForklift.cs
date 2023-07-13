@@ -11,17 +11,14 @@ namespace Cube.Storage;
 
 public class GuidoForklift //Cars from pixar (lol)
 {
-    private string path;
-    private ReadOnlyMemory<char> connectionString;
     private int capacity;
 
     private ConcurrentQueue<ReadOnlyMemory<char>> queries = new();
-
+    private Engine _engine;
     public GuidoForklift(string dbPath,
                         int capacity)
     {
-        this.path = dbPath;
-        this.connectionString = $"Data Source = {this.path}".AsMemory();
+        _engine = new (dbPath);
         this.capacity = capacity;
     }
 
@@ -29,14 +26,7 @@ public class GuidoForklift //Cars from pixar (lol)
     //in negative case it creates from scratch
     public void ForkliftUp()
     {
-        if(!File.Exists(path))
-        {
-            SQLiteConnection.CreateFile(path);
-        }
-        using (var connection = new SQLiteConnection(connectionString.ToString()))
-        {
-            connection.Execute("create table if not exists artists(Id integer primary key, Name varchar(50))");
-        }
+        _engine.StartEngine();
     }
 
     #region CRUD

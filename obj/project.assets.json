@@ -1372,19 +1372,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\LEYA\\.nuget\\packages\\": {}
+    "C:\\Users\\ildar\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\repos\\Ild-Music.Cube\\Ild-Music.Cube.csproj",
+      "projectUniqueName": "D:\\repos\\Ild_Music\\Ild-Music.Cube\\Ild-Music.Cube.csproj",
       "projectName": "Ild-Music.Cube",
-      "projectPath": "D:\\repos\\Ild-Music.Cube\\Ild-Music.Cube.csproj",
-      "packagesPath": "C:\\Users\\LEYA\\.nuget\\packages\\",
-      "outputPath": "D:\\repos\\Ild-Music.Cube\\obj\\",
+      "projectPath": "D:\\repos\\Ild_Music\\Ild-Music.Cube\\Ild-Music.Cube.csproj",
+      "packagesPath": "C:\\Users\\ildar\\.nuget\\packages\\",
+      "outputPath": "D:\\repos\\Ild_Music\\Ild-Music.Cube\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\LEYA\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\ildar\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net6.0"
@@ -1396,8 +1396,8 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "projectReferences": {
-            "D:\\repos\\Ild-Music.ShareInstances\\ShareInstances.csproj": {
-              "projectPath": "D:\\repos\\Ild-Music.ShareInstances\\ShareInstances.csproj"
+            "D:\\repos\\Ild_Music\\Ild-Music.ShareInstances\\ShareInstances.csproj": {
+              "projectPath": "D:\\repos\\Ild_Music\\Ild-Music.ShareInstances\\ShareInstances.csproj"
             }
           }
         }
@@ -1437,7 +1437,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.410\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.412\\RuntimeIdentifierGraph.json"
       }
     }
   }

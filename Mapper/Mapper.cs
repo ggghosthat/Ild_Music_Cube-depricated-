@@ -44,8 +44,11 @@ public sealed class Mapper : IDisposable
                 artistTrackStore.SetHolder(artist.Id);
                 artistTrackStore.Tag = 2;      
 
+                var artistTragger = _mapper.Map<Store>(artist.Tags);
+                artistTragger.SetHolder(artist.Id);
+
                 multimapStore.TryAdd(mappedEntity,
-                                     new List<Store> {artistPlaylistStore, artistTrackStore});                      
+                                     new List<Store> {artistPlaylistStore, artistTrackStore, artistTragger} );                      
             }
             else if(raw is Playlist playlist)
             {                        
@@ -59,8 +62,11 @@ public sealed class Mapper : IDisposable
                 playlistTrackStore.SetHolder(playlist.Id);
                 playlistTrackStore.Tag = 4;
 
+                var playlistTragger = _mapper.Map<Store>(playlist.Tags);
+                playlistTragger.SetHolder(playlist.Id);
+
                 multimapStore.TryAdd(mappedEntity,
-                                     new List<Store> {playlistArtistStore, playlistTrackStore});                      
+                                     new List<Store> {playlistArtistStore, playlistTrackStore, playlistTragger});                      
             }
             else if(raw is Track track)
             {
@@ -74,8 +80,16 @@ public sealed class Mapper : IDisposable
                 trackPlaylistStore.SetHolder(track.Id);
                 trackPlaylistStore.Tag = 6;
 
+                var trackTragger = _mapper.Map<Store>(track.Tags);
+                trackTragger.SetHolder(track.Id);
+
                 multimapStore.TryAdd(mappedEntity,
-                                     new List<Store> {trackArtistStore, trackPlaylistStore});                      
+                                     new List<Store> {trackArtistStore, trackPlaylistStore, trackTragger});                      
+            }
+            else if (raw is Tag tag)
+            {
+                var mappedTag = _mapper.Map<TagMap>(tag);
+                multimapStore.TryAdd(mappedTag, null);
             }
         });
     }
@@ -92,14 +106,17 @@ public sealed class Mapper : IDisposable
             var artistPlaylistStore = _mapper.Map<Store>(artist.Playlists);
             artistPlaylistStore.SetHolder(artist.Id);
             artistPlaylistStore.Tag = 1;
-
             this.stores.Add(artistPlaylistStore);
 
             var artistTrackStore = _mapper.Map<Store>(artist.Tracks);
             artistTrackStore.SetHolder(artist.Id);
-            artistTrackStore.Tag = 2;
-                        
+            artistTrackStore.Tag = 2;                        
             this.stores.Add(artistTrackStore);
+
+            var artistTragger = _mapper.Map<Store>(artist.Tags);
+            artistTragger.SetHolder(artist.Id);            
+            this.stores.Add(artistTragger);
+
             return (this.entity, this.stores);
         }
         else if(entity is Playlist playlist)
@@ -108,15 +125,17 @@ public sealed class Mapper : IDisposable
 
             var playlistArtistStore = _mapper.Map<Store>(playlist.Artists);
             playlistArtistStore.SetHolder(playlist.Id);
-            playlistArtistStore.Tag = 3;
-            
+            playlistArtistStore.Tag = 3;            
             this.stores.Add(playlistArtistStore);
 
             var playlistTrackStore = _mapper.Map<Store>(playlist.Tracky);
             playlistTrackStore.SetHolder(playlist.Id);
-            playlistTrackStore.Tag = 4;
-            
+            playlistTrackStore.Tag = 4;            
             this.stores.Add(playlistTrackStore);
+
+            var playlistTragger = _mapper.Map<Store>(playlist.Tags);
+            playlistTragger.SetHolder(playlist.Id);            
+            this.stores.Add(playlistTragger);
 
             return (this.entity, this.stores);
         }
@@ -127,14 +146,16 @@ public sealed class Mapper : IDisposable
             var trackArtistStore = _mapper.Map<Store>(track.Artists);
             trackArtistStore.SetHolder(track.Id);
             trackArtistStore.Tag = 5;
-                        
             this.stores.Add(trackArtistStore);
 
             var trackPlaylistStore = _mapper.Map<Store>(track.Playlists);
             trackPlaylistStore.SetHolder(track.Id);
-            trackPlaylistStore.Tag = 6;
-                        
+            trackPlaylistStore.Tag = 6;                        
             this.stores.Add(trackPlaylistStore);
+
+            var trackTragger = _mapper.Map<Store>(track.Tags);
+            trackTragger.SetHolder(track.Id);            
+            this.stores.Add(trackTragger);
 
             return (this.entity, this.stores);
         }
