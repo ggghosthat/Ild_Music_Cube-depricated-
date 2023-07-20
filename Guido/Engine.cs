@@ -58,7 +58,7 @@ public class Engine
         {
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
-                connection.Execute("insert into artists(TID, Name, Description, Avatar, Valid, Duration) values (@Buid, @Name, @Description, @Avatar, @IsValid, @Duration)");
+                connection.Execute("insert into artists(TID, Name, Description, Avatar, Valid, Duration) values (@Buid, @Name, @Description, @Avatar, @IsValid, @Duration)", track);
             }
         }
     }
