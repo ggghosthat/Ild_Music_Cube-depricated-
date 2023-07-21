@@ -13,19 +13,19 @@ public sealed class MapProfile : Profile
     public MapProfile()
     {
         CreateMap<Artist, ArtistMap>()
-            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToByteArray()))
+            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.ToString()))
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()));
 
         CreateMap<Playlist, PlaylistMap>()
-            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToByteArray()))
+            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.ToString()))
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()));
 
         CreateMap<Track, TrackMap>()
-            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToByteArray()))
+            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.ToString()))
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()))
@@ -33,7 +33,7 @@ public sealed class MapProfile : Profile
             .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.TotalMilliseconds));
 
         CreateMap<Tag, TagMap>()
-            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToByteArray()))
+            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()));
 
         CreateMap<ICollection<Guid>, Store>()

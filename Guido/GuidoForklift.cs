@@ -1,4 +1,6 @@
 using ShareInstances.Instances;
+using Cube.Mapper;
+using Cube.Mapper.Entities;
 
 using System;
 using System.Threading.Tasks;
@@ -13,12 +15,16 @@ public class GuidoForklift //Cars from pixar (lol)
 {
     private int capacity;
 
-    private ConcurrentQueue<ReadOnlyMemory<char>> queries = new();
-    private Engine _engine;
+    private static ConcurrentQueue<ReadOnlyMemory<char>> queries = new();
+    private static Engine _engine;
+    private static Mapper.Mapper _mapper;
+
     public GuidoForklift(string dbPath,
                         int capacity)
     {
         _engine = new (dbPath);
+        _mapper = new();
+
         this.capacity = capacity;
     }
 
@@ -35,6 +41,9 @@ public class GuidoForklift //Cars from pixar (lol)
     {
         if (entity is Artist artist)
         {
+           var mappedArtist = _mapper.MakeSnapshot<Artist>(artist);
+           _engine.Add<ArtistMap>((ArtistMap)mappedArtist.Item1);           
+           _engine.AddStores(mappedArtist.Item2);
         }
         else if(entity is Playlist playlist)
         {            
