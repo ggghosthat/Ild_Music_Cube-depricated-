@@ -88,20 +88,55 @@ public class Engine
                 {
                     foreach(Guid relate in store.Relates)
                     {
-                        Console.WriteLine(relate.ToString());
-                        connection.Execute("insert into artists_playlists(AID, PID) values (@aid, @pid)", new {aid=store.Holder.ToString(), pid=relate.ToString() });
+                        connection.Execute("insert into artists_playlists(AID, PID) select @aid, @pid where not EXISTS(SELECT 1 from artists_playlists where AID = @aid and PID = @pid)", new {aid=store.Holder.ToString(), pid=relate.ToString() });
                     }
                 }
                 break;
             case(2):
+                using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                {
+                    foreach(Guid relate in store.Relates)
+                    {
+                        connection.Execute("insert into artists_tracks(AID, TID) select @aid, @tid where not EXISTS(SELECT 1 from artists_tracks where AID = @aid and TID = @tid)", new {aid=store.Holder.ToString(), tid=relate.ToString() });
+                    }
+                }
                 break;
             case(3):
+                using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                {
+                    foreach(Guid relate in store.Relates)
+                    {
+                        connection.Execute("insert into artists_playlists(AID, PID) select @aid, @pid where not EXISTS(SELECT 1 from artists_playlists where AID = @aid and PID = @pid)", new {aid=relate.ToString(), pid=store.Holder.ToString() });
+                    }
+                }
+
                 break;
             case(4):
+                using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                {
+                    foreach(Guid relate in store.Relates)
+                    {
+                        connection.Execute("insert into playlists_tracks(PID, TID) select @pid, @tid where not EXISTS(SELECT 1 from playlists_tracks where PID = @pid and TID = @tid)", new {pid=store.Holder.ToString(), tid=relate.ToString() });
+                    }
+                }
                 break;
             case(5):
+                using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                {
+                    foreach(Guid relate in store.Relates)
+                    {
+                        connection.Execute("insert into artists_tracks(AID, TID) select @aid, @tid where not EXISTS(SELECT 1 from artists_tracks where AID = @aid and TID = @tid)", new {aid=relate.ToString(), tid=store.Holder.ToString() });
+                    }
+                }
                 break;
             case(6):
+                using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                {
+                    foreach(Guid relate in store.Relates)
+                    {
+                        connection.Execute("insert into playlists_tracks(PID, TID) select @pid, @tid where not EXISTS(SELECT 1 from playlists_tracks where PID = @pid and TID = @tid)", new {pid=relate.ToString(), tid=store.Holder.ToString() });
+                    }
+                }
                 break;
             case(7):
                 break;
