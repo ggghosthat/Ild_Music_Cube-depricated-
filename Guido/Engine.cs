@@ -34,10 +34,8 @@ public class Engine
                 connection.Execute("create table if not exists playlists_tracks(Id integer primary key, PID text, TID text)");
 
 
-                connection.Execute("create table if not exists tags(Id integer primary key, TagID text, Name varchar)");
-                connection.Execute("create table if not exists tags_artists(Id integer primary key, TagID text, AID text)");
-                connection.Execute("create table if not exists tags_playlists(Id integer primary key, TagID text, PID text)");
-                connection.Execute("create table if not exists tags_tracks(Id integer primary key, TagID text, TID text)");
+                connection.Execute("create table if not exists tags(Id integer primary key, TagID text, Name text, Color text)");
+                connection.Execute("create table if not exists tags_instances(Id integer primary key, TagID text, IID text)");
             }
         }
         catch(Exception ex)
@@ -59,7 +57,7 @@ public class Engine
         {
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
-                connection.Execute("insert or ignore into playlist(PID, Name, Description, Avatar) values (@Buid, @Name, @Description, @Avatar)", playlist);
+                connection.Execute("insert or ignore into playlist(PID, Name, Description, Avatar) values (@Buid, @Name, @Description, @Avatar)", playlist );
             }
         }
         else if (entity is TrackMap track)
@@ -67,6 +65,13 @@ public class Engine
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
                 connection.Execute("insert or ignore into artists(TID, Name, Description, Avatar, Valid, Duration) values (@Buid, @Name, @Description, @Avatar, @IsValid, @Duration)", track);
+            }
+        }
+        else if (entity is TagMap tag)
+        {
+            using (var connection = new SQLiteConnection(_connectionString.ToString()))
+            {
+                connection.Execute("insert or ignore into tags(TagID, Name, Color) values (@Buid, @Name, @Color)", tag);
             }
         }
     }
@@ -139,6 +144,13 @@ public class Engine
                 }
                 break;
             case(7):
+                using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                {
+                    foreach(Guid relate in store.Relates)
+                    {
+                        connection.Execute("insert into tags_instances(TagID, IID) select @tagid, @iid where not EXISTS(SELECT 1 from tags_instances where TagID = @tagid and IID = @iid)", new {tagid=relate.ToString(), iid=store.Holder.ToString() });
+                    }
+                }
                 break;
             default:break;
         }
