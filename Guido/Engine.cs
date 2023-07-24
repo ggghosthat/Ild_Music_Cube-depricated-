@@ -57,14 +57,14 @@ public class Engine
         {
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
-                connection.Execute("insert or ignore into playlist(PID, Name, Description, Avatar) values (@Buid, @Name, @Description, @Avatar)", playlist );
+                connection.Execute("insert or ignore into playlists(PID, Name, Description, Avatar) values (@Buid, @Name, @Description, @Avatar)", playlist );
             }
         }
         else if (entity is TrackMap track)
         {
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
-                connection.Execute("insert or ignore into artists(TID, Name, Description, Avatar, Valid, Duration) values (@Buid, @Name, @Description, @Avatar, @IsValid, @Duration)", track);
+                connection.Execute("insert or ignore into tracks(TID, Path, Name, Description, Avatar, Valid, Duration) values (@Buid, @Pathway, @Name, @Description, @Avatar, @IsValid, @Duration)", track);
             }
         }
         else if (entity is TagMap tag)
@@ -159,7 +159,23 @@ public class Engine
 
 
     public void Delete<T>(T entity)
-    {}
+    {
+        if(entity is Artist artist)
+        {
+            string artistDeletionQuery = @"delete from artists where AID = @aid;
+                                          delete from artists_playlists where AID = @aid;
+                                          delete from artists_tracks where AID = @aid;";
+
+            using (var connection = new SQLiteConnection(_connectionString.ToString()))
+            {
+                connection.QueryMultiple(artistDeletionQuery, new {aid=artist.Id.ToString()});
+            }
+        }
+        else if(entity is Playlist)
+        {}
+        else if(entity is Track)
+        {}
+    }
 
     public void Edit<T>(T entity)
     {}

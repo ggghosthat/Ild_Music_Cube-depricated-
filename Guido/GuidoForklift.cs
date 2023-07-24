@@ -46,10 +46,18 @@ public class GuidoForklift //Cars from pixar (lol)
            _engine.AddStores(mappedArtist.Item2);
         }
         else if(entity is Playlist playlist)
-        {            
+        {
+           var mappedPlaylist = _mapper.MakeSnapshot<Playlist>(playlist);
+           _engine.Add<PlaylistMap>((PlaylistMap)mappedPlaylist.Item1);           
+           _engine.AddStores(mappedPlaylist.Item2);
+
         }
         else if(entity is Track track)
         {
+           var mappedTrack = _mapper.MakeSnapshot<Track>(track);
+           _engine.Add<TrackMap>((TrackMap)mappedTrack.Item1);           
+           _engine.AddStores(mappedTrack.Item2);
+
         }
     }
 
