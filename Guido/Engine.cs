@@ -158,7 +158,7 @@ public class Engine
 
 
 
-    public void Delete<T>(T entity)
+    public void Delete<T>(ref T entity)
     {
         if(entity is Artist artist)
         {
@@ -171,10 +171,29 @@ public class Engine
                 connection.QueryMultiple(artistDeletionQuery, new {aid=artist.Id.ToString()});
             }
         }
-        else if(entity is Playlist)
-        {}
-        else if(entity is Track)
-        {}
+        else if(entity is Playlist playlist)
+        {
+            string playlistDeletionQuery = @"delete from playlists where PID = @pid;
+                                          delete from artists_playlists where PID = @pid;
+                                          delete from playlists_tracks where PID = @pid;";
+
+            using (var connection = new SQLiteConnection(_connectionString.ToString()))
+            {
+                connection.QueryMultiple(playlistDeletionQuery, new {pid=playlist.Id.ToString()});
+            }
+        }
+        else if(entity is Track track)
+        {
+            string trackDeletionQuery = @"delete from tracks where TID = @tid;
+                                          delete from playlists_tracks where TID = @tid;
+                                          delete from artists_tracks where TID = @tid;";
+
+            using (var connection = new SQLiteConnection(_connectionString.ToString()))
+            {
+                connection.QueryMultiple(trackDeletionQuery, new {tid=track.Id.ToString()});
+            }
+
+        }
     }
 
     public void Edit<T>(T entity)

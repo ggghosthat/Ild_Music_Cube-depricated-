@@ -66,8 +66,22 @@ public class GuidoForklift //Cars from pixar (lol)
     {}
 
     //delete specific entity by it own id
-    public void DeleteEntity<T>(Guid entityId)
-    {}
+    public void DeleteEntity<T>(T entity)
+    {
+        if (entity is Artist artist)
+        {
+          _engine.Delete<Artist>(ref artist); 
+        }
+        else if(entity is Playlist playlist)
+        {
+          _engine.Delete<Playlist>(ref playlist); 
+        }
+        else if(entity is Track track)
+        {
+          _engine.Delete<Track>(ref track); 
+        }
+
+    }
 
     //upload whole stuff from db
     public void Load()
