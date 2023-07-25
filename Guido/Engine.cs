@@ -168,38 +168,29 @@ public class Engine
     public void Edit<T>(T entity)
     {
         ReadOnlySpan<char> dapperQuery;
-        if (entity is Artist artist)
+        if (entity is ArtistMap artist)
         {
-            dapperQuery = "".AsSpan();
+            dapperQuery = "update artists set Name = @Name, Description = @Description, Avatar = @Avatar where AID = @Buid".AsSpan();
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
-                foreach(Guid relate in store.Relates)
-                {
-                    connection.Execute(dapperQuery.ToString(), new {});
-                }
+                connection.Execute(dapperQuery.ToString(), artist);
             }
         }
-        else if (entity is Playlist playlist)
+        else if (entity is PlaylistMap playlist)
         {
-            dapperQuery = "".AsSpan();
+            dapperQuery = "update playlists set Name = @Name, Description = @Description, Avatar = @Avatar where PID = @Buid".AsSpan();
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
-                foreach(Guid relate in store.Relates)
-                {
-                    connection.Execute(dapperQuery.ToString(), new {});
-                }
+                connection.Execute(dapperQuery.ToString(), playlist);
             }
 
         }
-        else if (entity is Track track)
+        else if (entity is TrackMap track)
         {
-            dapperQuery = "".AsSpan();
+            dapperQuery = "update tracks set Path = @Pathway, Name = @Name, Description = @Description, Avatar = @Avatar, Valid = @IsValid, Duration = @Duration where TID = @Buid".AsSpan();
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
-                foreach(Guid relate in store.Relates)
-                {
-                    connection.Execute(dapperQuery.ToString(), new {});
-                }
+                connection.Execute(dapperQuery.ToString(), track);
             }
 
         }
