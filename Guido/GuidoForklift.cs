@@ -63,7 +63,26 @@ public class GuidoForklift //Cars from pixar (lol)
 
     //update(edit) existed entity
     public void EditEntity<T>(T entity)
-    {}
+    {
+        if (entity is Artist artist)
+        {
+           var mappedArtist = _mapper.MakeSnapshot<Artist>(artist);
+           _engine.Edit<ArtistMap>((ArtistMap)mappedArtist.Item1);           
+           _engine.EditStores(mappedArtist.Item2);
+        }
+        else if(entity is Playlist playlist)
+        {
+           var mappedPlaylist = _mapper.MakeSnapshot<Playlist>(playlist);
+           _engine.Edit<PlaylistMap>((PlaylistMap)mappedPlaylist.Item1);           
+           _engine.EditStores(mappedPlaylist.Item2);
+        }
+        else if(entity is Track track)
+        {
+           var mappedTrack = _mapper.MakeSnapshot<Track>(track);
+           _engine.Edit<TrackMap>((TrackMap)mappedTrack.Item1);           
+           _engine.EditStores(mappedTrack.Item2);
+        }
+    }
 
     //delete specific entity by it own id
     public void DeleteEntity<T>(T entity)

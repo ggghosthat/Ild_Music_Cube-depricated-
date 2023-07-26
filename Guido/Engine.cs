@@ -131,7 +131,7 @@ public class Engine
                     }
                     break;
                 case(5):
-                    dapperQuery = "insert into artists_tracks(AID, TID) select @aid, @tid where not EXISTS(SELECT 1 from artists_tracks where AID = @aid and TID = @tid)";
+                    dapperQuery = "insert into artists_tracks(AID, TID) select @aid, @tid where not EXISTS(SELECT 1 from artists_tracks where AID = @aid and TID = @tid)".AsSpan();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         foreach(Guid relate in store.Relates)
@@ -141,7 +141,7 @@ public class Engine
                     }
                     break;
                 case(6):
-                    dapperQuery = "insert into playlists_tracks(PID, TID) select @pid, @tid where not EXISTS(SELECT 1 from playlists_tracks where PID = @pid and TID = @tid)";
+                    dapperQuery = "insert into playlists_tracks(PID, TID) select @pid, @tid where not EXISTS(SELECT 1 from playlists_tracks where PID = @pid and TID = @tid)".AsSpan();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         foreach(Guid relate in store.Relates)
@@ -151,7 +151,7 @@ public class Engine
                     }
                     break;
                 case(7):
-                    dapperQuery = "insert into tags_instances(TagID, IID) select @tagid, @iid where not EXISTS(SELECT 1 from tags_instances where TagID = @tagid and IID = @iid)";
+                    dapperQuery = "insert into tags_instances(TagID, IID) select @tagid, @iid where not EXISTS(SELECT 1 from tags_instances where TagID = @tagid and IID = @iid)".AsSpan();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         foreach(Guid relate in store.Relates)
@@ -198,7 +198,92 @@ public class Engine
 
     public void EditStores(ICollection<Store> stores)
     {
-        
+       stores.ToList().ForEach(store => 
+        {   
+            ReadOnlySpan<char> dapperQuery;
+            switch(store.Tag)
+            {
+                case(1):
+                    dapperQuery = @"delete from artists_playlists where AID = @aid;
+                                   insert into artists_playlists(AID, PID) select @aid, @pid where not EXISTS(SELECT 1 from artists_playlists where AID = @aid and PID = @pid);".AsSpan();
+                    using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                    {
+                        foreach(Guid relate in store.Relates)
+                        {
+                            connection.QueryMultiple(dapperQuery.ToString(), new {aid=store.Holder.ToString(), pid=relate.ToString() });
+                        }
+                    }
+                    break;
+                case(2):
+                    dapperQuery = @"delete from artists_tracks where AID = @aid;
+                                    insert into artists_tracks(AID, TID) select @aid, @tid where not EXISTS(SELECT 1 from artists_tracks where AID = @aid and TID = @tid);".AsSpan();
+                    using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                    {
+                        foreach(Guid relate in store.Relates)
+                        {
+                            connection.QueryMultiple(dapperQuery.ToString(), new {aid=store.Holder.ToString(), tid=relate.ToString() });
+                        }
+                    }
+                    break;
+                case(3):
+                    dapperQuery = @"delete from artists_playlists where PID = @pid;
+                                    insert into artists_playlists(AID, PID) select @aid, @pid where not EXISTS(SELECT 1 from artists_playlists where AID = @aid and PID = @pid);".AsSpan();
+                    using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                    {
+                        foreach(Guid relate in store.Relates)
+                        {
+                            connection.QueryMultiple(dapperQuery.ToString(), new {aid=relate.ToString(), pid=store.Holder.ToString() });
+                        }
+                    }
+                    break;
+                case(4):
+                    dapperQuery = @"delete from playlists_tracks where PID = @pid;
+                                    insert into playlists_tracks(PID, TID) select @pid, @tid where not EXISTS(SELECT 1 from playlists_tracks where PID = @pid and TID = @tid);".AsSpan();
+                    using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                    {
+                        foreach(Guid relate in store.Relates)
+                        {
+                            connection.QueryMultiple(dapperQuery.ToString(), new {pid=store.Holder.ToString(), tid=relate.ToString() });
+                        }
+                    }
+                    break;
+                case(5):
+                    dapperQuery = @"delete from artists_tracks where TID = @tid;
+                                    insert into artists_tracks(AID, TID) select @aid, @tid where not EXISTS(SELECT 1 from artists_tracks where AID = @aid and TID = @tid);".AsSpan();
+                    using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                    {
+                        foreach(Guid relate in store.Relates)
+                        {
+                            connection.QueryMultiple(dapperQuery.ToString(), new {aid=relate.ToString(), tid=store.Holder.ToString() });
+                        }
+                    }
+                    break;
+                case(6):
+                    dapperQuery = @"delete from playlists_tracks where TID = @tid;
+                                    insert into playlists_tracks(PID, TID) select @pid, @tid where not EXISTS(SELECT 1 from playlists_tracks where PID = @pid and TID = @tid);".AsSpan();
+                    using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                    {
+                        foreach(Guid relate in store.Relates)
+                        {
+                            connection.QueryMultiple(dapperQuery.ToString(), new {pid=relate.ToString(), tid=store.Holder.ToString() });
+                        }
+                    }
+                    break;
+                case(7):
+                    dapperQuery = @"delete from tags_instances where IID = @iid;
+                                    insert into tags_instances(TagID, IID) select @tagid, @iid where not EXISTS(SELECT 1 from tags_instances where TagID = @tagid and IID = @iid);".AsSpan();
+                    using (var connection = new SQLiteConnection(_connectionString.ToString()))
+                    {
+                        foreach(Guid relate in store.Relates)
+                        {
+                            connection.QueryMultiple(dapperQuery.ToString(), new {tagid=relate.ToString(), iid=store.Holder.ToString() });
+                        }
+                    }
+                    break;
+                default:break;
+            }
+        });
+ 
     }
 
     public void Delete<T>(ref T entity)
