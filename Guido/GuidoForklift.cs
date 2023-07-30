@@ -14,13 +14,14 @@ namespace Cube.Storage;
 public class GuidoForklift //Cars from pixar (lol)
 {
     private int capacity;
+    private int offset = 0;
 
     private static ConcurrentQueue<ReadOnlyMemory<char>> queries = new();
     private static Engine _engine;
     private static Mapper.Mapper _mapper;
 
     public GuidoForklift(string dbPath,
-                        int capacity)
+                        int capacity = 300)
     {
         _engine = new (dbPath);
         _mapper = new();
@@ -102,9 +103,18 @@ public class GuidoForklift //Cars from pixar (lol)
 
     }
 
-    //upload whole stuff from db
     public void Load()
-    {}
+    {
+        (IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>) load = _engine.BringAll(offset:offset, capacity:capacity);
+        offset += capacity;
+    }
+
+    public IEnumerable<T> LoadEntities<T>()
+    {
+        IEnumerable<T> result = _engine.Bring<T>(offset:offset, capacity:capacity);
+        offset += capacity;
+        return result;
+    }
     #endregion
     
 }

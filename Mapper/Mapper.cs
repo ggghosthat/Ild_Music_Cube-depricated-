@@ -169,6 +169,15 @@ public sealed class Mapper : IDisposable
         return multimapStore.ToDictionary(pair => pair.Key, pair => pair.Value, multimapStore.Comparer);
     }
 
+    public void ExtractSingleInstance()
+    {
+
+    }
+
+    public async Task ExtractMultipleInstances()
+    {
+    }
+
     public void Clean()
     {
         if (entity is not null)

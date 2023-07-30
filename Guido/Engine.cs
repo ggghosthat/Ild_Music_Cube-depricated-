@@ -324,4 +324,74 @@ public class Engine
 
         }
     }
+
+    public (IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>) BringAll(int offset, int capacity)
+    {
+        IEnumerable<ArtistMap> artists;
+        IEnumerable<PlaylistMap> playlists;
+        IEnumerable<TrackMap> tracks;
+
+        ReadOnlySpan<char> dapperQuery = @"
+        select AID, Name, Description, Avatar from artists where Id >= @offset and Id <= @capacity;
+        select PID, Name, Description, Avatar from playlists where Id >= @offset and Id <= @capacity;
+        select TID, Pathway, Name, Description, Avatar, Valid, Duration from tracks where Id >= @offset and Id <= @capacity;".AsSpan();
+
+        using (var connection = new SQLiteConnection(_connectionString.ToString()))
+        {
+            using (var multiQuery = connection.QueryMultiple(dapperQuery.ToString(), new {offset=offset, capacity=capacity}))
+            {
+                artists = multiQuery.Read<ArtistMap>();
+                playlists = multiQuery.Read<PlaylistMap>();
+                tracks = multiQuery.Read<TrackMap>();
+            }
+        }
+        return (artists, playlists, tracks);
+    }
+
+    public IEnumerable<T> Bring<T>(int offset, int capacity)
+    {
+        ReadOnlySpan<char> dapperQuery;
+        IEnumerable<T> result;
+        if(typeof(T) == typeof(ArtistMap))
+        {
+            dapperQuery = "select AID, Name, Description, Avatar from artists where Id >= @offset and Id <= @capacity".AsSpan();
+        }
+        else if(typeof(T) == typeof(PlaylistMap))
+        {
+            dapperQuery = "select PID, Name, Description, Avatar from playlists where Id >= @offset and Id <= @capacity".AsSpan();
+        }
+        else if(typeof(T) == typeof(TrackMap))
+        {
+            dapperQuery = "select TID, Pathway, Name, Description, Avatar, Valid, Duration from tracks where Id >= @offset and Id <= @capacity".AsSpan();
+        }
+        else if(typeof(T) == typeof(TagMap))
+        {
+            dapperQuery = "select TagID, Name, Color from tags where Id >= @offset and Id <= @capacity".AsSpan();
+        }
+        else return null;
+
+        using (var connection = new SQLiteConnection(_connectionString.ToString()))
+        {
+            result = connection.Query<T>(dapperQuery.ToString(), new {offset=offset, capacity=capacity});
+        }
+        return result;
+    }
+
+    public IEnumerable<Store> BringStores()
+    {
+        ReadOnlySpan<char> dapperQuery = @"select AID, PID from artists_playlists;
+                                           select AID, TID from artists_tracks;
+                                           select PID, TID from playlists_tracks;".AsSpan();
+        
+        using (var connection = new SQLiteConnection(_connectionString.ToString()))
+        {
+            using (var multiQuery = connection.QueryMultiple(dapperQuery.ToString()))
+            {
+                var apStore = multiQuery.Read();
+                var atStore = multiQuery.Read();
+                var ptStore = multiQuery.Read();
+            }
+        }
+        return null;
+    }
 }
