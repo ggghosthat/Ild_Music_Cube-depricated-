@@ -377,21 +377,52 @@ public class Engine
         return result;
     }
 
-    public IEnumerable<Store> BringStores()
+    public IEnumerable<Store> BringStores(int tag, ReadOnlyMemory<char> id)
     {
-        ReadOnlySpan<char> dapperQuery = @"select AID, PID from artists_playlists;
-                                           select AID, TID from artists_tracks;
-                                           select PID, TID from playlists_tracks;".AsSpan();
-        
-        using (var connection = new SQLiteConnection(_connectionString.ToString()))
+        ReadOnlySpan<char> dapperQuery;
+        switch(tag)
         {
-            using (var multiQuery = connection.QueryMultiple(dapperQuery.ToString()))
-            {
-                var apStore = multiQuery.Read();
-                var atStore = multiQuery.Read();
-                var ptStore = multiQuery.Read();
-            }
+            case (1):
+                dapperQuery = @"select AID, PID from artists_playlists where AID = @id;".AsSpan();
+                PairsObtain<ApPair>(dapperQuery);
+                break;
+            case (2):
+                dapperQuery = @"select PID, AID from artists_playlists where PID = @id;".AsSpan();
+                PairsObtain<ApPair>(dapperQuery);
+                break;
+            case (3):
+                dapperQuery = @"select AID, TID from artists_tracks where AID = @id;".AsSpan();
+                PairsObtain<AtPair>(dapperQuery);
+                break;
+            case (4):
+                dapperQuery = @"select TID, AID from artists_tracks where TID = @id;".AsSpan();
+                PairsObtain<AtPair>(dapperQuery);
+                break;
+            case (5):
+                dapperQuery = @"select PID, TID from playlists_tracks where PID = @id;".AsSpan();
+                PairsObtain<PtPair>(dapperQuery);
+                break;
+            case (6):
+                dapperQuery = @"select TID, PID from playlists_tracks where TID = @id;".AsSpan();
+                PairsObtain<PtPair>(dapperQuery);
+                break;
+            default: break;
         }
+
         return null;
+    }
+
+    private IEnumerable<T> PairsObtain<T>(ReadOnlySpan<char> dapperQuery)
+    {
+        if(typeof(T) == typeof(ApPair) || typeof(T) == typeof(AtPair) || typeof(T) == typeof(PtPair))
+        {
+            IEnumerable<T> result;
+            using (var connection = new SQLiteConnection(_connectionString.ToString()))
+            {
+                result = connection.Query<T>(dapperQuery.ToString());            
+            }
+            return result;
+        }
+        else throw new Exception("Not supported Pair type. There are only support for ap, at and pt pair type.");
     }
 }

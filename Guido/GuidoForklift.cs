@@ -115,6 +115,11 @@ public class GuidoForklift //Cars from pixar (lol)
         offset += capacity;
         return result;
     }
+
+    public void HenloExample()
+    {
+        var zzz = _engine.BringStores();    
+    }
     #endregion
     
 }
