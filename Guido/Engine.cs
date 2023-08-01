@@ -385,29 +385,39 @@ public class Engine
         {
             case (1):
                 dapperQuery = @"select AID, PID from artists_playlists where AID = @id;".AsSpan();
-                var pairs = PairsObtain<ApPair>(dapperQuery, id);
-                store.Holder = new Guid(pairs.First().AID);
-                store.Relates = pairs.Select(x => new Guid(x.PID)).ToList();
+                var apPairs = PairsObtain<ApPair>(dapperQuery, id);
+                store.Holder = new Guid(apPairs.First().AID);
+                store.Relates = apPairs.Select(x => new Guid(x.PID)).ToList();
                 break;
             case (2):
                 dapperQuery = @"select PID, AID from artists_playlists where PID = @id;".AsSpan();
-                PairsObtain<ApPair>(dapperQuery, id);
+                var paPairs = PairsObtain<ApPair>(dapperQuery, id);
+                store.Holder = new Guid(paPairs.First().PID);
+                store.Relates = paPairs.Select(x => new Guid(x.AID)).ToList();
                 break;
             case (3):
                 dapperQuery = @"select AID, TID from artists_tracks where AID = @id;".AsSpan();
-                PairsObtain<AtPair>(dapperQuery, id);
+                var atPairs = PairsObtain<AtPair>(dapperQuery, id);
+                store.Holder = new Guid(atPairs.First().AID);
+                store.Relates = atPairs.Select(x => new Guid(x.TID)).ToList();
                 break;
             case (4):
                 dapperQuery = @"select TID, AID from artists_tracks where TID = @id;".AsSpan();
-                PairsObtain<AtPair>(dapperQuery, id);
+                var taPairs = PairsObtain<AtPair>(dapperQuery, id);
+                store.Holder = new Guid(taPairs.First().TID);
+                store.Relates = taPairs.Select(x => new Guid(x.AID)).ToList();
                 break;
             case (5):
                 dapperQuery = @"select PID, TID from playlists_tracks where PID = @id;".AsSpan();
-                PairsObtain<PtPair>(dapperQuery, id);
+                var ptPairs = PairsObtain<PtPair>(dapperQuery, id);
+                store.Holder = new Guid(ptPairs.First().PID);
+                store.Relates = ptPairs.Select(x => new Guid(x.TID)).ToList();
                 break;
             case (6):
                 dapperQuery = @"select TID, PID from playlists_tracks where TID = @id;".AsSpan();
-                PairsObtain<PtPair>(dapperQuery, id);
+                var tpPairs = PairsObtain<PtPair>(dapperQuery, id);
+                store.Holder = new Guid(tpPairs.First().TID);
+                store.Relates = tpPairs.Select(x => new Guid(x.PID)).ToList();
                 break;
             default: break;
         }
