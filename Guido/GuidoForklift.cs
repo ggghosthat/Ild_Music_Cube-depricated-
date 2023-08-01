@@ -116,9 +116,14 @@ public class GuidoForklift //Cars from pixar (lol)
         return result;
     }
 
-    public void HenloExample()
+    public void HenloExample(Guid id)
     {
-        var zzz = _engine.BringStores();    
+        var zzz = _engine.BringStores(1, id);   
+
+        Console.WriteLine(zzz.Holder);
+        Console.WriteLine();
+        foreach (var ite in zzz.Relates)
+            Console.WriteLine(ite);
     }
     #endregion
     
