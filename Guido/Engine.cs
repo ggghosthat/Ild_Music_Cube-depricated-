@@ -1,7 +1,9 @@
 using ShareInstances.Instances;
 using Cube.Mapper.Entities;
 
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Data.SQLite;
 using Dapper;
 namespace Cube.Storage;
@@ -377,44 +379,73 @@ public class Engine
         return result;
     }
 
-    public Store BringStores(int tag, Guid id)
+    public async Task<T> BringSingle<T>(Guid inputId)
     {
-        ReadOnlySpan<char> dapperQuery;
+        ReadOnlyMemory<char> dapperQuery;
+        T result;
+        if(typeof(T) == typeof(ArtistMap))
+        {
+            dapperQuery = "select AID, Name, Description, Avatar from artists where AID = @id".AsMemory();
+        }
+        else if(typeof(T) == typeof(PlaylistMap))
+        {
+            dapperQuery = "select PID, Name, Description, Avatar from playlists where PID = @id".AsMemory();
+        }
+        else if(typeof(T) == typeof(TrackMap))
+        {
+            dapperQuery = "select TID, Pathway, Name, Description, Avatar, Valid, Duration from tracks where TID = @id".AsMemory();
+        }
+        else if(typeof(T) == typeof(TagMap))
+        {
+            dapperQuery = "select TagID, Name, Color from tags where TagID = @id".AsMemory();
+        }
+        else throw new Exception("Fuck you, I dont wanna search yo shit!");
+
+        using (var connection = new SQLiteConnection(_connectionString.ToString()))
+        {
+            result = await connection.QuerySingleAsync<T>(dapperQuery.ToString(), new {id=inputId.ToString()});
+        }
+        return result;
+    }
+
+    public async Task<Store> BringStore(int tag, Guid id)
+    {
+        ReadOnlyMemory<char> dapperQuery;
         Store store = new Store(tag:tag);
         switch(tag)
         {
             case (1):
-                dapperQuery = @"select AID, PID from artists_playlists where AID = @id;".AsSpan();
+                dapperQuery = @"select AID, PID from artists_playlists where AID = @id;".AsMemory();
                 var apPairs = PairsObtain<ApPair>(dapperQuery, id);
                 store.Holder = new Guid(apPairs.First().AID);
                 store.Relates = apPairs.Select(x => new Guid(x.PID)).ToList();
                 break;
             case (2):
-                dapperQuery = @"select PID, AID from artists_playlists where PID = @id;".AsSpan();
+                dapperQuery = @"select PID, AID from artists_playlists where PID = @id;".AsMemory();
                 var paPairs = PairsObtain<ApPair>(dapperQuery, id);
                 store.Holder = new Guid(paPairs.First().PID);
                 store.Relates = paPairs.Select(x => new Guid(x.AID)).ToList();
                 break;
             case (3):
-                dapperQuery = @"select AID, TID from artists_tracks where AID = @id;".AsSpan();
+                dapperQuery = @"select AID, TID from artists_tracks where AID = @id;".AsMemory();
                 var atPairs = PairsObtain<AtPair>(dapperQuery, id);
                 store.Holder = new Guid(atPairs.First().AID);
                 store.Relates = atPairs.Select(x => new Guid(x.TID)).ToList();
                 break;
             case (4):
-                dapperQuery = @"select TID, AID from artists_tracks where TID = @id;".AsSpan();
+                dapperQuery = @"select TID, AID from artists_tracks where TID = @id;".AsMemory();
                 var taPairs = PairsObtain<AtPair>(dapperQuery, id);
                 store.Holder = new Guid(taPairs.First().TID);
                 store.Relates = taPairs.Select(x => new Guid(x.AID)).ToList();
                 break;
             case (5):
-                dapperQuery = @"select PID, TID from playlists_tracks where PID = @id;".AsSpan();
+                dapperQuery = @"select PID, TID from playlists_tracks where PID = @id;".AsMemory();
                 var ptPairs = PairsObtain<PtPair>(dapperQuery, id);
                 store.Holder = new Guid(ptPairs.First().PID);
                 store.Relates = ptPairs.Select(x => new Guid(x.TID)).ToList();
                 break;
             case (6):
-                dapperQuery = @"select TID, PID from playlists_tracks where TID = @id;".AsSpan();
+                dapperQuery = @"select TID, PID from playlists_tracks where TID = @id;".AsMemory();
                 var tpPairs = PairsObtain<PtPair>(dapperQuery, id);
                 store.Holder = new Guid(tpPairs.First().TID);
                 store.Relates = tpPairs.Select(x => new Guid(x.PID)).ToList();
@@ -424,8 +455,8 @@ public class Engine
 
         return store;
     }
-
-    private IEnumerable<T> PairsObtain<T>(ReadOnlySpan<char> dapperQuery, Guid id)
+ 
+    private IEnumerable<T> PairsObtain<T>(ReadOnlyMemory<char> dapperQuery, Guid id)
     {
         if(typeof(T) == typeof(ApPair) || typeof(T) == typeof(AtPair) || typeof(T) == typeof(PtPair))
         {
@@ -439,4 +470,5 @@ public class Engine
         }
         else throw new Exception("Not supported Pair type. There are only support for ap, at and pt pair type.");
     }
+ 
 }

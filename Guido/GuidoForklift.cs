@@ -107,6 +107,7 @@ public class GuidoForklift //Cars from pixar (lol)
     {
         (IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>) load = _engine.BringAll(offset:offset, capacity:capacity);
         offset += capacity;
+        
     }
 
     public IEnumerable<T> LoadEntities<T>()
@@ -116,14 +117,38 @@ public class GuidoForklift //Cars from pixar (lol)
         return result;
     }
 
-    public void HenloExample(Guid id)
+    public async Task<(T, Store, Store)> LoadSingleEntity<T>(Guid entityId)
     {
-        var zzz = _engine.BringStores(1, id);   
+        T resultEntityMap = await _engine.BringSingle<T>(entityId);
+        (Store, Store) stores = await LoadEntityRelations(1, entityId);
+        return (resultEntityMap, stores.Item1, stores.Item2);
+    }
 
-        Console.WriteLine(zzz.Holder);
-        Console.WriteLine();
-        foreach (var ite in zzz.Relates)
-            Console.WriteLine(ite);
+    public async Task<(Store, Store)> LoadEntityRelations(int entityIndex, Guid id)
+    {
+        if (entityIndex == 1) //load stores for artist entity
+        {
+            var apStore = await _engine.BringStore(1, id);   
+            var atStore = await _engine.BringStore(3, id);
+            return (apStore, atStore);
+        }
+        else if (entityIndex == 2) //loads stores for playlist entity
+        {
+            var paStore = await _engine.BringStore(2, id); 
+            var ptStore = await _engine.BringStore(5, id);
+            return (paStore, ptStore);
+        }
+        else if (entityIndex == 3) // loads stores for track entity
+        {
+            var taStore = await _engine.BringStore(4, id);
+            var tpStore = await _engine.BringStore(6, id);
+            return (taStore, tpStore);
+        }
+        else if(entityIndex == 4)
+        {
+            //implement tag relationships uploading
+        }
+        throw new Exception($"Can not upload relationship with your entity index: {entityIndex}");
     }
     #endregion
     
