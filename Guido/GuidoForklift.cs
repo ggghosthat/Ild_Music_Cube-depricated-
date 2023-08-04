@@ -48,6 +48,7 @@ public class GuidoForklift //Cars from pixar (lol)
         }
         else if(entity is Playlist playlist)
         {
+           playlist.DumpTracks(); 
            var mappedPlaylist = _mapper.MakeSnapshot<Playlist>(playlist);
            _engine.Add<PlaylistMap>((PlaylistMap)mappedPlaylist.Item1);           
            _engine.AddStores(mappedPlaylist.Item2);
@@ -73,6 +74,7 @@ public class GuidoForklift //Cars from pixar (lol)
         }
         else if(entity is Playlist playlist)
         {
+           playlist.DumpTracks();
            var mappedPlaylist = _mapper.MakeSnapshot<Playlist>(playlist);
            _engine.Edit<PlaylistMap>((PlaylistMap)mappedPlaylist.Item1);           
            _engine.EditStores(mappedPlaylist.Item2);

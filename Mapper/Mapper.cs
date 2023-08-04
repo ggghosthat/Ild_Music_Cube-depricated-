@@ -175,31 +175,43 @@ public sealed class Mapper : IDisposable
         {
             var entity = _mapper.Map<Artist>(artistMap);
 
-            if(stores.Item1.Tag == 1)
-            {}
+            if((stores.Item1.Tag == 1) && (stores.Item1.Holder == entity.Id))
+            {
+                stores.Item1.Relates.ToList().ForEach(r => entity.Playlists.Add(r));
+            }
 
-            if(stores.Item2.Tag == 3)
-            {}
+            if((stores.Item2.Tag == 3) && (stores.Item2.Holder == entity.Id))
+            {
+                stores.Item2.Relates.ToList().ForEach(r => entity.Tracks.Add(r));
+            }
         }
         else if(mappedEntity is PlaylistMap playlistMap)
         {
             var entity = _mapper.Map<Playlist>(playlistMap);
 
-            if(stores.Item1.Tag == 2)
-            {}
+            if((stores.Item1.Tag == 2) && (stores.Item1.Holder == entity.Id))
+            {
+                stores.Item1.Relates.ToList().ForEach(r => entity.Artists.Add(r));
+            }
 
-            if(stores.Item2.Tag == 5)
-            {}
+            if((stores.Item2.Tag == 5) && (stores.Item2.Holder == entity.Id))
+            {
+                stores.Item2.Relates.ToList().ForEach(r => entity.Tracky.Add(r));
+            }
         }
         else if(mappedEntity is TrackMap trackMap)
         {
             var entity = _mapper.Map<Track>(trackMap);
 
-            if(stores.Item1.Tag == 4)
-            {}
+            if((stores.Item1.Tag == 4) && (stores.Item1.Holder == entity.Id))
+            {
+                stores.Item1.Relates.ToList().ForEach(r => entity.Artists.Add(r));
+            }
 
-            if(stores.Item2.Tag == 6)
-            {}
+            if((stores.Item2.Tag == 6) && (stores.Item2.Holder == entity.Id))
+            {
+                stores.Item2.Relates.ToList().ForEach(r => entity.Playlists.Add(r));
+            }
         }
 
 
