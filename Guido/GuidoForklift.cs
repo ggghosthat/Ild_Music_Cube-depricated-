@@ -63,7 +63,7 @@ public class GuidoForklift //Cars from pixar (lol)
     }
 
     //update(edit) existed entity
-    public void EditEntity<T>(T entity)
+    public async Task EditEntity<T>(T entity)
     {
         if (entity is Artist artist)
         {
@@ -86,7 +86,7 @@ public class GuidoForklift //Cars from pixar (lol)
     }
 
     //delete specific entity by it own id
-    public void DeleteEntity<T>(T entity)
+    public async Task DeleteEntity<T>(T entity)
     {
         if (entity is Artist artist)
         {
@@ -146,7 +146,8 @@ public class GuidoForklift //Cars from pixar (lol)
         }
         else if(entityIndex == 4)
         {
-            //implement tag relationships uploading
+            var tagStore = await _engine.BringStore(7, id);
+            return (tagStore, default);
         }
         throw new Exception($"Can not upload relationship with your entity index: {entityIndex}");
     }

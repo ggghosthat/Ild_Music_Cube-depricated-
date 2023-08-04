@@ -169,8 +169,39 @@ public sealed class Mapper : IDisposable
         return multimapStore.ToDictionary(pair => pair.Key, pair => pair.Value, multimapStore.Comparer);
     }
 
-    public void ExtractSingleInstance()
+    public void ExtractSingleInstance<T>(T mappedEntity, (Store, Store) stores)
     {
+        if(mappedEntity is ArtistMap artistMap)
+        {
+            var entity = _mapper.Map<Artist>(artistMap);
+
+            if(stores.Item1.Tag == 1)
+            {}
+
+            if(stores.Item2.Tag == 3)
+            {}
+        }
+        else if(mappedEntity is PlaylistMap playlistMap)
+        {
+            var entity = _mapper.Map<Playlist>(playlistMap);
+
+            if(stores.Item1.Tag == 2)
+            {}
+
+            if(stores.Item2.Tag == 5)
+            {}
+        }
+        else if(mappedEntity is TrackMap trackMap)
+        {
+            var entity = _mapper.Map<Track>(trackMap);
+
+            if(stores.Item1.Tag == 4)
+            {}
+
+            if(stores.Item2.Tag == 6)
+            {}
+        }
+
 
     }
 

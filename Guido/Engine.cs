@@ -450,6 +450,12 @@ public class Engine
                 store.Holder = new Guid(tpPairs.First().TID);
                 store.Relates = tpPairs.Select(x => new Guid(x.PID)).ToList();
                 break;
+            case (7):
+                dapperQuery = "select TagID, IID from tags_instances where TagID = @id;".AsMemory();
+                var tagPairs = PairsObtain<TagPair>(dapperQuery, id);
+                store.Holder = new Guid(tagPairs.First().TagId);
+                store.Relates = tagPairs.Select(x => new Guid(x.IID)).ToList();
+                break;
             default: break;
         }
 
