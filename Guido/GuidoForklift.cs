@@ -109,7 +109,6 @@ public class GuidoForklift //Cars from pixar (lol)
     {
         (IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>) load = _engine.BringAll(offset:offset, capacity:capacity);
         offset += capacity;
-        
     }
 
     public IEnumerable<T> LoadEntities<T>()
@@ -152,6 +151,12 @@ public class GuidoForklift //Cars from pixar (lol)
             return (tagStore, default);
         }
         throw new Exception($"Can not upload relationship with your entity index: {entityIndex}");
+    }
+
+    public async Task<IEnumerable<T>> LoadEntitiesById<T>(ICollection<Guid> idCollection)
+    {
+       var result = await _engine.BringItemsById<T>(idCollection); 
+       return result;
     }
     #endregion
     
