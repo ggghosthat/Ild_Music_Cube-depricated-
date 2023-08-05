@@ -327,54 +327,53 @@ public class Engine
         }
     }
 
-    public (IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>) BringAll(int offset, int capacity)
+    public async Task<(IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>)> BringAll(int offset, int capacity)
     {
         IEnumerable<ArtistMap> artists;
         IEnumerable<PlaylistMap> playlists;
         IEnumerable<TrackMap> tracks;
 
-        ReadOnlySpan<char> dapperQuery = @"
-        select AID, Name, Description, Avatar from artists where Id >= @offset and Id <= @capacity;
-        select PID, Name, Description, Avatar from playlists where Id >= @offset and Id <= @capacity;
-        select TID, Pathway, Name, Description, Avatar, Valid, Duration from tracks where Id >= @offset and Id <= @capacity;".AsSpan();
+        ReadOnlyMemory<char> dapperQuery = @"select AID, Name, Description, Avatar from artists where Id >= @offset and Id <= @capacity;
+                                           select PID, Name, Description, Avatar from playlists where Id >= @offset and Id <= @capacity;
+                                           select TID, Pathway, Name, Description, Avatar, Valid, Duration from tracks where Id >= @offset and Id <= @capacity;".AsMemory();
 
         using (var connection = new SQLiteConnection(_connectionString.ToString()))
         {
-            using (var multiQuery = connection.QueryMultiple(dapperQuery.ToString(), new {offset=offset, capacity=capacity}))
+            using (var multiQuery = await connection.QueryMultipleAsync(dapperQuery.ToString(), new {offset=offset, capacity=capacity}))
             {
-                artists = multiQuery.Read<ArtistMap>();
-                playlists = multiQuery.Read<PlaylistMap>();
-                tracks = multiQuery.Read<TrackMap>();
+                artists = await multiQuery.ReadAsync<ArtistMap>();
+                playlists = await multiQuery.ReadAsync<PlaylistMap>();
+                tracks = await multiQuery.ReadAsync<TrackMap>();
             }
         }
         return (artists, playlists, tracks);
     }
 
-    public IEnumerable<T> Bring<T>(int offset, int capacity)
+    public async Task<IEnumerable<T>> Bring<T>(int offset, int capacity)
     {
-        ReadOnlySpan<char> dapperQuery;
+        ReadOnlyMemory<char> dapperQuery;
         IEnumerable<T> result;
         if(typeof(T) == typeof(ArtistMap))
         {
-            dapperQuery = "select AID, Name, Description, Avatar from artists where Id >= @offset and Id <= @capacity".AsSpan();
+            dapperQuery = "select AID, Name, Description, Avatar from artists where Id >= @offset and Id <= @capacity".AsMemory();
         }
         else if(typeof(T) == typeof(PlaylistMap))
         {
-            dapperQuery = "select PID, Name, Description, Avatar from playlists where Id >= @offset and Id <= @capacity".AsSpan();
+            dapperQuery = "select PID, Name, Description, Avatar from playlists where Id >= @offset and Id <= @capacity".AsMemory();
         }
         else if(typeof(T) == typeof(TrackMap))
         {
-            dapperQuery = "select TID, Pathway, Name, Description, Avatar, Valid, Duration from tracks where Id >= @offset and Id <= @capacity".AsSpan();
+            dapperQuery = "select TID, Pathway, Name, Description, Avatar, Valid, Duration from tracks where Id >= @offset and Id <= @capacity".AsMemory();
         }
         else if(typeof(T) == typeof(TagMap))
         {
-            dapperQuery = "select TagID, Name, Color from tags where Id >= @offset and Id <= @capacity".AsSpan();
+            dapperQuery = "select TagID, Name, Color from tags where Id >= @offset and Id <= @capacity".AsMemory();
         }
         else return null;
 
         using (var connection = new SQLiteConnection(_connectionString.ToString()))
         {
-            result = connection.Query<T>(dapperQuery.ToString(), new {offset=offset, capacity=capacity});
+            result = await connection.QueryAsync<T>(dapperQuery.ToString(), new {offset=offset, capacity=capacity});
         }
         return result;
     }
@@ -404,6 +403,36 @@ public class Engine
         using (var connection = new SQLiteConnection(_connectionString.ToString()))
         {
             result = await connection.QuerySingleAsync<T>(dapperQuery.ToString(), new {id=inputId.ToString()});
+        }
+        return result;
+    }
+
+    public async Task<IEnumerable<T>> BringItemsById<T>(ICollection<Guid> ids)
+    {
+        ReadOnlyMemory<char> dapperQuery;
+        IEnumerable<T> result;
+
+        if(typeof(T) == typeof(ArtistMap))
+        {
+            dapperQuery = "select AID, Name, Description, Avatar from artists where AID in @ids".AsMemory();
+        }
+        else if(typeof(T) == typeof(PlaylistMap))
+        {
+            dapperQuery = "select PID, Name, Description, Avatar from playlists where PID in @ids".AsMemory();
+        }
+        else if(typeof(T) == typeof(TrackMap))
+        {
+            dapperQuery = "select TID, Pathway, Name, Description, Avatar, Valid, Duration from tracks where TID in @ids".AsMemory();
+        }
+        else if(typeof(T) == typeof(TagMap))
+        {
+            dapperQuery = "select TagID, Name, Color from tags where TagID in @ids".AsMemory();
+        }
+        else throw new Exception("Fuck you, I dont wanna search yo shit!");
+        
+        using (var connection = new SQLiteConnection(_connectionString.ToString()))
+        {
+            result = await connection.QueryAsync<T>(dapperQuery.ToString(), new {ids=ids.Select(i => i.ToString())} );
         }
         return result;
     }
@@ -477,4 +506,5 @@ public class Engine
         else throw new Exception("Not supported Pair type. There are only support for ap, at and pt pair type.");
     }
  
+
 }
