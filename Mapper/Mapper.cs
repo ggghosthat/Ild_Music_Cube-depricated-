@@ -3,6 +3,7 @@ using Cube.Mapper.Entities;
 
 using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Concurrent;
 using AutoMapper;
 
@@ -41,72 +42,7 @@ public sealed class Mapper : IDisposable
     }
 
     #region Private Methods
-    private async Task GetMappedStaff<T>(ICollection<T> raws)
-    {
-        var opt = new ParallelOptions {MaxDegreeOfParallelism=4};
-        await Parallel.ForEachAsync(raws, opt, async (raw, token) => {
-            if (raw is Artist artist)
-            {
-                var mappedEntity = _mapper.Map<ArtistMap>(artist);
-                
-                var artistPlaylistStore = _mapper.Map<Store>(artist.Playlists);
-                artistPlaylistStore.SetHolder(artist.Id);
-                artistPlaylistStore.Tag = 1;
-
-                var artistTrackStore = _mapper.Map<Store>(artist.Tracks);
-                artistTrackStore.SetHolder(artist.Id);
-                artistTrackStore.Tag = 2;      
-
-                var artistTragger = _mapper.Map<Store>(artist.Tags);
-                artistTragger.SetHolder(artist.Id);
-
-                multimapStore.TryAdd(mappedEntity,
-                                     new List<Store> {artistPlaylistStore, artistTrackStore, artistTragger} );                      
-            }
-            else if(raw is Playlist playlist)
-            {                        
-                var mappedEntity = _mapper.Map<PlaylistMap>(playlist);
-
-                var playlistArtistStore = _mapper.Map<Store>(playlist.Artists);
-                playlistArtistStore.SetHolder(playlist.Id);
-                playlistArtistStore.Tag = 3;
-
-                var playlistTrackStore = _mapper.Map<Store>(playlist.Tracky);
-                playlistTrackStore.SetHolder(playlist.Id);
-                playlistTrackStore.Tag = 4;
-
-                var playlistTragger = _mapper.Map<Store>(playlist.Tags);
-                playlistTragger.SetHolder(playlist.Id);
-
-                multimapStore.TryAdd(mappedEntity,
-                                     new List<Store> {playlistArtistStore, playlistTrackStore, playlistTragger});                      
-            }
-            else if(raw is Track track)
-            {
-                var mappedEntity = _mapper.Map<TrackMap>(track);
-
-                var trackArtistStore = _mapper.Map<Store>(track.Artists);
-                trackArtistStore.SetHolder(track.Id);
-                trackArtistStore.Tag = 5;
-
-                var trackPlaylistStore = _mapper.Map<Store>(track.Playlists);
-                trackPlaylistStore.SetHolder(track.Id);
-                trackPlaylistStore.Tag = 6;
-
-                var trackTragger = _mapper.Map<Store>(track.Tags);
-                trackTragger.SetHolder(track.Id);
-
-                multimapStore.TryAdd(mappedEntity,
-                                     new List<Store> {trackArtistStore, trackPlaylistStore, trackTragger});                      
-            }
-            else if (raw is Tag tag)
-            {
-                var mappedTag = _mapper.Map<TagMap>(tag);
-                multimapStore.TryAdd(mappedTag, null);
-            }
-        });
-    }
-
+    
    
 
     #endregion
@@ -178,12 +114,80 @@ public sealed class Mapper : IDisposable
         else return default;
     }
 
+    private async Task GetMappedStaff<T>(ICollection<T> raws)
+    {
+        var opt = new ParallelOptions {MaxDegreeOfParallelism=4};
+        await Parallel.ForEachAsync(raws, opt, async (raw, token) => {
+            if (raw is Artist artist)
+            {
+                var mappedEntity = _mapper.Map<ArtistMap>(artist);
+                
+                var artistPlaylistStore = _mapper.Map<Store>(artist.Playlists);
+                artistPlaylistStore.SetHolder(artist.Id);
+                artistPlaylistStore.Tag = 1;
+
+                var artistTrackStore = _mapper.Map<Store>(artist.Tracks);
+                artistTrackStore.SetHolder(artist.Id);
+                artistTrackStore.Tag = 2;      
+
+                var artistTragger = _mapper.Map<Store>(artist.Tags);
+                artistTragger.SetHolder(artist.Id);
+
+                multimapStore.TryAdd(mappedEntity,
+                                     new List<Store> {artistPlaylistStore, artistTrackStore, artistTragger} );                      
+            }
+            else if(raw is Playlist playlist)
+            {                        
+                var mappedEntity = _mapper.Map<PlaylistMap>(playlist);
+
+                var playlistArtistStore = _mapper.Map<Store>(playlist.Artists);
+                playlistArtistStore.SetHolder(playlist.Id);
+                playlistArtistStore.Tag = 3;
+
+                var playlistTrackStore = _mapper.Map<Store>(playlist.Tracky);
+                playlistTrackStore.SetHolder(playlist.Id);
+                playlistTrackStore.Tag = 4;
+
+                var playlistTragger = _mapper.Map<Store>(playlist.Tags);
+                playlistTragger.SetHolder(playlist.Id);
+
+                multimapStore.TryAdd(mappedEntity,
+                                     new List<Store> {playlistArtistStore, playlistTrackStore, playlistTragger});                      
+            }
+            else if(raw is Track track)
+            {
+                var mappedEntity = _mapper.Map<TrackMap>(track);
+
+                var trackArtistStore = _mapper.Map<Store>(track.Artists);
+                trackArtistStore.SetHolder(track.Id);
+                trackArtistStore.Tag = 5;
+
+                var trackPlaylistStore = _mapper.Map<Store>(track.Playlists);
+                trackPlaylistStore.SetHolder(track.Id);
+                trackPlaylistStore.Tag = 6;
+
+                var trackTragger = _mapper.Map<Store>(track.Tags);
+                trackTragger.SetHolder(track.Id);
+
+                multimapStore.TryAdd(mappedEntity,
+                                     new List<Store> {trackArtistStore, trackPlaylistStore, trackTragger});                      
+            }
+            else if (raw is Tag tag)
+            {
+                var mappedTag = _mapper.Map<TagMap>(tag);
+                multimapStore.TryAdd(mappedTag, null);
+            }
+        });
+    }
+
+
     public async Task<IDictionary<IMappable, IList<Store>>> MakeSnapshot<T>(ICollection<T> entities)
     {
         multimapStore = new ConcurrentDictionary<IMappable, IList<Store>>();
         await GetMappedStaff<T>(entities);
         return multimapStore.ToDictionary(pair => pair.Key, pair => pair.Value, multimapStore.Comparer);
     }
+
 
     public void ExtractSingleInstance<T>(T mappedEntity, (Store, Store) stores)
     {
@@ -231,7 +235,7 @@ public sealed class Mapper : IDisposable
         }
     }
 
-    private async Task GetEntityProjections<T>(IEnumerable<T> raws)
+    public async Task<IEnumerable> GetEntityProjections<T>(IEnumerable<T> raws)
     {
         var opt = new ParallelOptions {MaxDegreeOfParallelism=4};
         await Parallel.ForEachAsync(raws, opt, async (raw, token) => {
@@ -256,35 +260,18 @@ public sealed class Mapper : IDisposable
                 tagQueue.Enqueue(tagProjection);
             }
         });
+
+        if(raws.First() is ArtistMap)
+            return Artists;
+        else if(raws.First() is PlaylistMap)
+            return Playlists;
+        else if(raws.First() is TrackMap)
+            return Tracks;
+        else if(raws.First() is TagMap)
+            return Tags;
+        else throw new Exception("Not supported format has been required!");
     }
 
-
-    public async Task ProjectMultipleEntities<T>(IEnumerable<T> inputCollection) 
-    {
-        if(inputCollection.First() is ArtistMap) 
-        {
-            artistsQueue = new();
-            await GetEntityProjections(inputCollection);
-        }
-        else if(inputCollection.First() is PlaylistMap)
-        {
-            playlistsQueue = new();
-            await GetEntityProjections(inputCollection);
-        }
-        else if(inputCollection.First() is TrackMap)
-        {
-            trackQueue = new();
-            await GetEntityProjections(inputCollection);
-        }
-        else if(inputCollection.First() is TagMap)
-        {
-            tagQueue = new();
-            await GetEntityProjections(inputCollection);
-        }
-        else throw new Exception("Could not find a correct project for your map objects.");
-    }
-
-    
 
     public void Clean()
     {
