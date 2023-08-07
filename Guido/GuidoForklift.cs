@@ -105,15 +105,19 @@ public class GuidoForklift //Cars from pixar (lol)
 
     }
 
-    public void Load()
+    public async Task<(IEnumerable<Artist>, IEnumerable<Playlist>, IEnumerable<Track>)> Load()
     {
-        (IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>) load = _engine.BringAll(offset:offset, capacity:capacity);
+        (IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>) load = await _engine.BringAll(offset:offset, capacity:capacity);
+        await _mapper.ProjectMultipleEntities<ArtistMap>(load.Item1);
+        await _mapper.ProjectMultipleEntities<PlaylistMap>(load.Item2);
+        await _mapper.ProjectMultipleEntities<TrackMap>(load.Item3);
         offset += capacity;
+        return (_mapper.Artists, _mapper.Playlists, _mapper.Tracks);
     }
 
-    public IEnumerable<T> LoadEntities<T>()
+    public async Task<IEnumerable<T>> LoadEntities<T>()
     {
-        IEnumerable<T> result = _engine.Bring<T>(offset:offset, capacity:capacity);
+        IEnumerable<T> result = await _engine.Bring<T>(offset:offset, capacity:capacity);
         offset += capacity;
         return result;
     }

@@ -11,12 +11,25 @@ namespace Cube.Mapper;
 //this class perform mapping operations and has been created to be used within using scopes
 public sealed class Mapper : IDisposable
 {
-    private IMapper _mapper;
+    //Map to database models
+    private IMapper _mapper = null;
 
-    private IMappable entity;
-    private IList<Store> stores;
+    private IMappable entity = null;
+    private IList<Store> stores = null;
     
-    private ConcurrentDictionary<IMappable, IList<Store>> multimapStore;
+    private ConcurrentDictionary<IMappable, IList<Store>> multimapStore = null;
+
+    //Map from database models
+    private ConcurrentQueue<Artist> artistsQueue = null;
+    private ConcurrentQueue<Playlist> playlistsQueue = null;
+    private ConcurrentQueue<Track> trackQueue = null;
+    private ConcurrentQueue<Tag> tagQueue = null; 
+
+    public IEnumerable<Artist> Artists => artistsQueue.ToList();
+    public IEnumerable<Playlist> Playlists => playlistsQueue.ToList();
+    public IEnumerable<Track> Tracks => trackQueue.ToList();
+    public IEnumerable<Tag> Tags => tagQueue.ToList();
+
     public Mapper()
     {  
         MapperConfiguration configure = new MapperConfiguration(cfg => 
@@ -93,6 +106,9 @@ public sealed class Mapper : IDisposable
             }
         });
     }
+
+   
+
     #endregion
 
     #region Public Methods
@@ -213,13 +229,62 @@ public sealed class Mapper : IDisposable
                 stores.Item2.Relates.ToList().ForEach(r => entity.Playlists.Add(r));
             }
         }
-
-
     }
 
-    public async Task ExtractMultipleInstances()
+    private async Task GetEntityProjections<T>(IEnumerable<T> raws)
     {
+        var opt = new ParallelOptions {MaxDegreeOfParallelism=4};
+        await Parallel.ForEachAsync(raws, opt, async (raw, token) => {
+            if (raw is ArtistMap artist)
+            {
+                var artistProjection = _mapper.Map<Artist>(artist);
+                artistsQueue.Enqueue(artistProjection);
+            }
+            else if(raw is PlaylistMap playlist)
+            {                        
+                var playlistProjection = _mapper.Map<Playlist>(playlist);
+                playlistsQueue.Enqueue(playlistProjection);
+            }
+            else if(raw is TrackMap track)
+            {
+                var trackProjection = _mapper.Map<Track>(track);
+                trackQueue.Enqueue(trackProjection);
+            }
+            else if (raw is TagMap tag)
+            {
+                var tagProjection = _mapper.Map<Tag>(tag);
+                tagQueue.Enqueue(tagProjection);
+            }
+        });
     }
+
+
+    public async Task ProjectMultipleEntities<T>(IEnumerable<T> inputCollection) 
+    {
+        if(inputCollection.First() is ArtistMap) 
+        {
+            artistsQueue = new();
+            await GetEntityProjections(inputCollection);
+        }
+        else if(inputCollection.First() is PlaylistMap)
+        {
+            playlistsQueue = new();
+            await GetEntityProjections(inputCollection);
+        }
+        else if(inputCollection.First() is TrackMap)
+        {
+            trackQueue = new();
+            await GetEntityProjections(inputCollection);
+        }
+        else if(inputCollection.First() is TagMap)
+        {
+            tagQueue = new();
+            await GetEntityProjections(inputCollection);
+        }
+        else throw new Exception("Could not find a correct project for your map objects.");
+    }
+
+    
 
     public void Clean()
     {
@@ -237,7 +302,30 @@ public sealed class Mapper : IDisposable
             multimapStore.Clear();
             multimapStore = null;
         }
-        GC.Collect();
+
+        if(artistsQueue is not null)
+        {
+            artistsQueue.Clear();
+            artistsQueue = null;
+        }
+        
+        if(playlistsQueue is not null)
+        {
+            playlistsQueue.Clear();
+            playlistsQueue = null;
+        }
+
+        if(trackQueue is not null)
+        {
+            trackQueue.Clear();
+            trackQueue = null;
+        }
+        
+        if(tagQueue is not null)
+        {
+            tagQueue.Clear();
+            tagQueue = null;
+        }
     }
 
     public void Dispose() 
