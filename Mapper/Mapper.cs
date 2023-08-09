@@ -31,6 +31,11 @@ public sealed class Mapper : IDisposable
     public IEnumerable<Track> Tracks => trackQueue.ToList();
     public IEnumerable<Tag> Tags => tagQueue.ToList();
 
+    public Artist Artist {get; private set;}
+    public Playlist Playlist {get; private set;}
+    public Track Track {get; private set;}
+    public Tag Tag {get; private set;}
+
     public Mapper()
     {  
         MapperConfiguration configure = new MapperConfiguration(cfg => 
@@ -189,48 +194,57 @@ public sealed class Mapper : IDisposable
     }
 
 
-    public void ExtractSingleInstance<T>(T mappedEntity, (Store, Store) stores)
+    public void ExtractSingle(IMappable mappedEntity, (Store, Store) stores)
     {
         if(mappedEntity is ArtistMap artistMap)
         {
-            var entity = _mapper.Map<Artist>(artistMap);
+            Artist = _mapper.Map<Artist>(artistMap);
 
-            if((stores.Item1.Tag == 1) && (stores.Item1.Holder == entity.Id))
+            if((stores.Item1.Tag == 1) && (stores.Item1.Holder == Artist.Id))
             {
-                stores.Item1.Relates.ToList().ForEach(r => entity.Playlists.Add(r));
+                stores.Item1.Relates.ToList().ForEach(r => Artist.Playlists.Add(r));
             }
 
-            if((stores.Item2.Tag == 3) && (stores.Item2.Holder == entity.Id))
+            if((stores.Item2.Tag == 3) && (stores.Item2.Holder == Artist.Id))
             {
-                stores.Item2.Relates.ToList().ForEach(r => entity.Tracks.Add(r));
+                stores.Item2.Relates.ToList().ForEach(r => Artist.Tracks.Add(r));
             }
         }
         else if(mappedEntity is PlaylistMap playlistMap)
         {
-            var entity = _mapper.Map<Playlist>(playlistMap);
+            Playlist = _mapper.Map<Playlist>(playlistMap);
 
-            if((stores.Item1.Tag == 2) && (stores.Item1.Holder == entity.Id))
+            if((stores.Item1.Tag == 2) && (stores.Item1.Holder == Playlist.Id))
             {
-                stores.Item1.Relates.ToList().ForEach(r => entity.Artists.Add(r));
+                stores.Item1.Relates.ToList().ForEach(r => Playlist.Artists.Add(r));
             }
 
-            if((stores.Item2.Tag == 5) && (stores.Item2.Holder == entity.Id))
+            if((stores.Item2.Tag == 5) && (stores.Item2.Holder == Playlist.Id))
             {
-                stores.Item2.Relates.ToList().ForEach(r => entity.Tracky.Add(r));
+                stores.Item2.Relates.ToList().ForEach(r => Playlist.Tracky.Add(r));
             }
         }
         else if(mappedEntity is TrackMap trackMap)
         {
-            var entity = _mapper.Map<Track>(trackMap);
+            Track = _mapper.Map<Track>(trackMap);
 
-            if((stores.Item1.Tag == 4) && (stores.Item1.Holder == entity.Id))
+            if((stores.Item1.Tag == 4) && (stores.Item1.Holder == Track.Id))
             {
-                stores.Item1.Relates.ToList().ForEach(r => entity.Artists.Add(r));
+                stores.Item1.Relates.ToList().ForEach(r => Track.Artists.Add(r));
             }
 
-            if((stores.Item2.Tag == 6) && (stores.Item2.Holder == entity.Id))
+            if((stores.Item2.Tag == 6) && (stores.Item2.Holder == Track.Id))
             {
-                stores.Item2.Relates.ToList().ForEach(r => entity.Playlists.Add(r));
+                stores.Item2.Relates.ToList().ForEach(r => Track.Playlists.Add(r));
+            }
+        }
+        else if(mappedEntity is TagMap tagMap)
+        {
+            Tag = _mapper.Map<Tag>(tagMap);
+
+            if((stores.Item1.Tag == 7) && (stores.Item1.Holder == Tag.Id))
+            {
+                //stores.Item1.Relates.ToList().ForEach(r => Tag.);
             }
         }
     }

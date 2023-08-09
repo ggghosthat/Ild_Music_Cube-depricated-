@@ -16,12 +16,16 @@ public class GuidoForklift //Cars from pixar (lol)
 {
     private int capacity;
     private int offset = 0;
+    private int artistOffset = 0;
+    private int playlistOffset = 0;
+    private int trackOfsset = 0;
+    private int tagOffset = 0;
 
     private static ConcurrentQueue<ReadOnlyMemory<char>> queries = new();
     private static Engine _engine;
     private static Mapper.Mapper _mapper;
 
-    public GuidoForklift(string dbPath,
+    public GuidoForklift(in string dbPath,
                         int capacity = 300)
     {
         _engine = new (dbPath);
@@ -106,55 +110,79 @@ public class GuidoForklift //Cars from pixar (lol)
 
     }
 
-    public async Task<(IEnumerable<Artist>, IEnumerable<Playlist>, IEnumerable<Track>)> Load()
+    public async Task<(IEnumerable<Artist>, IEnumerable<Playlist>, IEnumerable<Track>)> StartLoad()
     {
         (IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>) load = await _engine.BringAll(offset:offset, capacity:capacity);
         await _mapper.GetEntityProjections<ArtistMap>(load.Item1);
         await _mapper.GetEntityProjections<PlaylistMap>(load.Item2);
         await _mapper.GetEntityProjections<TrackMap>(load.Item3);
         offset += capacity;
+        artistOffset += capacity;
+        playlistOffset += capacity;
+        trackOfsset += capacity;
         return (_mapper.Artists, _mapper.Playlists, _mapper.Tracks);
     }
 
-    public async Task<IEnumerable> LoadEntities<T, R>()
+    public async Task<IEnumerable> LoadEntities<T>()
     {
-        var maps = await _engine.Bring<T>(offset, capacity);
-        return await _mapper.GetEntityProjections<T>(maps); 
+        if(typeof(T) == typeof(ArtistMap))
+        {
+             var maps = await _engine.Bring<ArtistMap>(artistOffset, capacity);
+            return await _mapper.GetEntityProjections<ArtistMap>(maps);
+        }
+        else if(typeof(T) == typeof(PlaylistMap))
+        {
+            var maps = await _engine.Bring<PlaylistMap>(playlistOffset, capacity);
+            return await _mapper.GetEntityProjections<PlaylistMap>(maps);
+        }
+        else if(typeof(T) == typeof(TrackMap))
+        {
+            var maps = await _engine.Bring<TrackMap>(trackOfsset, capacity);
+            return await _mapper.GetEntityProjections<TrackMap>(maps);
+        }
+        else if(typeof(T) == typeof(TagMap))
+        {
+            var maps = await _engine.Bring<TagMap>(tagOffset, capacity);
+            return await _mapper.GetEntityProjections<TagMap>(maps);
+        }
+        else throw new Exception("Could not load entities of your type.");
     }
 
+    //could not return in share instances
+    //return as mappable instances
     public async Task<(T, Store, Store)> LoadSingleEntity<T>(Guid entityId)
     {
-        T resultEntityMap = await _engine.BringSingle<T>(entityId);
-        (Store, Store) stores = await LoadEntityRelations(1, entityId);
-        return (resultEntityMap, stores.Item1, stores.Item2);
+        T entityMap = await _engine.BringSingle<T>(entityId);
+        (Store, Store) stores = await LoadEntityRelations<T>(entityId);
+        return (entityMap, stores.Item1, stores.Item2); 
     }
 
-    public async Task<(Store, Store)> LoadEntityRelations(int entityIndex, Guid id)
+    private async Task<(Store, Store)> LoadEntityRelations<T>(Guid id)
     {
-        if (entityIndex == 1) //load stores for artist entity
+        if (typeof(T) == typeof(ArtistMap)) //load stores for artist entity
         {
             var apStore = await _engine.BringStore(1, id);   
             var atStore = await _engine.BringStore(3, id);
             return (apStore, atStore);
         }
-        else if (entityIndex == 2) //loads stores for playlist entity
+        else if (typeof(T) == typeof(PlaylistMap)) //loads stores for playlist entity
         {
             var paStore = await _engine.BringStore(2, id); 
             var ptStore = await _engine.BringStore(5, id);
             return (paStore, ptStore);
         }
-        else if (entityIndex == 3) // loads stores for track entity
+        else if (typeof(T) == typeof(TrackMap)) // loads stores for track entity
         {
             var taStore = await _engine.BringStore(4, id);
             var tpStore = await _engine.BringStore(6, id);
             return (taStore, tpStore);
         }
-        else if(entityIndex == 4)
+        else if(typeof(T) == typeof(TagMap))
         {
             var tagStore = await _engine.BringStore(7, id);
             return (tagStore, default);
         }
-        throw new Exception($"Can not upload relationship with your entity index: {entityIndex}");
+        throw new Exception($"Can not upload relationship.");
     }
 
     public async Task<IEnumerable<T>> LoadEntitiesById<T>(ICollection<Guid> idCollection)
