@@ -249,41 +249,35 @@ public sealed class Mapper : IDisposable
         }
     }
 
-    public async Task<IEnumerable> GetEntityProjections<T>(IEnumerable<T> raws)
+    public async Task<IEnumerable<TProjection>> GetEntityProjections<T, TProjection>(IEnumerable<T> raws)
     {
+        var resultProjections = new ConcurrentQueue<TProjection>(); 
         var opt = new ParallelOptions {MaxDegreeOfParallelism=4};
-        await Parallel.ForEachAsync(raws, opt, async (raw, token) => {
-            if (raw is ArtistMap artist)
+        await Parallel.ForEachAsync(raws, opt, async (raw, token) => 
+        {
+            if (raw is ArtistMap artist && typeof(TProjection) == typeof(Artist))
             {
-                var artistProjection = _mapper.Map<Artist>(artist);
-                artistsQueue.Enqueue(artistProjection);
+                var artistProjection = _mapper.Map<TProjection>(artist);
+                resultProjections.Enqueue(artistProjection);
             }
-            else if(raw is PlaylistMap playlist)
+            else if(raw is PlaylistMap playlist && typeof(TProjection) == typeof(Playlist))
             {                        
-                var playlistProjection = _mapper.Map<Playlist>(playlist);
-                playlistsQueue.Enqueue(playlistProjection);
+                var playlistProjection = _mapper.Map<TProjection>(playlist);
+                resultProjections.Enqueue(playlistProjection);
             }
-            else if(raw is TrackMap track)
+            else if(raw is TrackMap track && typeof(TProjection) == typeof(Track))
             {
-                var trackProjection = _mapper.Map<Track>(track);
-                trackQueue.Enqueue(trackProjection);
+                var trackProjection = _mapper.Map<TProjection>(track);
+                resultProjections.Enqueue(trackProjection);
             }
-            else if (raw is TagMap tag)
+            else if (raw is TagMap tag && typeof(TProjection) == typeof(Tag))
             {
-                var tagProjection = _mapper.Map<Tag>(tag);
-                tagQueue.Enqueue(tagProjection);
+                var tagProjection = _mapper.Map<TProjection>(tag);
+                resultProjections.Enqueue(tagProjection);
             }
         });
-
-        if(raws.First() is ArtistMap)
-            return Artists;
-        else if(raws.First() is PlaylistMap)
-            return Playlists;
-        else if(raws.First() is TrackMap)
-            return Tracks;
-        else if(raws.First() is TagMap)
-            return Tags;
-        else throw new Exception("Not supported format has been required!");
+        
+        return resultProjections;
     }
 
 

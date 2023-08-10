@@ -113,37 +113,38 @@ public class GuidoForklift //Cars from pixar (lol)
     public async Task<(IEnumerable<Artist>, IEnumerable<Playlist>, IEnumerable<Track>)> StartLoad()
     {
         (IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>) load = await _engine.BringAll(offset:offset, capacity:capacity);
-        await _mapper.GetEntityProjections<ArtistMap>(load.Item1);
-        await _mapper.GetEntityProjections<PlaylistMap>(load.Item2);
-        await _mapper.GetEntityProjections<TrackMap>(load.Item3);
+        var artists = await _mapper.GetEntityProjections<ArtistMap, Artist>(load.Item1);
+        var playlists = await _mapper.GetEntityProjections<PlaylistMap, Playlist>(load.Item2);
+        var tracks = await _mapper.GetEntityProjections<TrackMap, Track>(load.Item3);
         offset += capacity;
         artistOffset += capacity;
         playlistOffset += capacity;
         trackOfsset += capacity;
-        return (_mapper.Artists, _mapper.Playlists, _mapper.Tracks);
+        return (artists, playlists, tracks);
     }
 
-    public async Task<IEnumerable> LoadEntities<T>()
+    public async Task<IEnumerable<T>> LoadEntities<T>()
     {
-        if(typeof(T) == typeof(ArtistMap))
+
+        if(typeof(T) == typeof(Artist))
         {
-             var maps = await _engine.Bring<ArtistMap>(artistOffset, capacity);
-            return await _mapper.GetEntityProjections<ArtistMap>(maps);
+            var maps = await _engine.Bring<ArtistMap>(artistOffset, capacity);
+            return await _mapper.GetEntityProjections<ArtistMap, T>(maps);
         }
-        else if(typeof(T) == typeof(PlaylistMap))
+        else if(typeof(T) == typeof(Playlist))
         {
             var maps = await _engine.Bring<PlaylistMap>(playlistOffset, capacity);
-            return await _mapper.GetEntityProjections<PlaylistMap>(maps);
+            return await _mapper.GetEntityProjections<PlaylistMap, T>(maps);
         }
-        else if(typeof(T) == typeof(TrackMap))
+        else if(typeof(T) == typeof(Track))
         {
             var maps = await _engine.Bring<TrackMap>(trackOfsset, capacity);
-            return await _mapper.GetEntityProjections<TrackMap>(maps);
+            return await _mapper.GetEntityProjections<TrackMap, T>(maps);
         }
-        else if(typeof(T) == typeof(TagMap))
+        else if(typeof(T) == typeof(Tag))
         {
             var maps = await _engine.Bring<TagMap>(tagOffset, capacity);
-            return await _mapper.GetEntityProjections<TagMap>(maps);
+            return await _mapper.GetEntityProjections<TagMap, T>(maps);
         }
         else throw new Exception("Could not load entities of your type.");
     }
