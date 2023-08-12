@@ -15,11 +15,6 @@ namespace Cube.Storage;
 public class GuidoForklift //Cars from pixar (lol)
 {
     private int capacity;
-    private int offset = 0;
-    private int artistOffset = 0;
-    private int playlistOffset = 0;
-    private int trackOfsset = 0;
-    private int tagOffset = 0;
 
     private static ConcurrentQueue<ReadOnlyMemory<char>> queries = new();
     private static Engine _engine;
@@ -110,87 +105,166 @@ public class GuidoForklift //Cars from pixar (lol)
 
     }
 
-    public async Task<(IEnumerable<Artist>, IEnumerable<Playlist>, IEnumerable<Track>)> StartLoad()
+    public async Task<(IEnumerable<Artist>, IEnumerable<Playlist>, IEnumerable<Track>)> StartLoad(int offset=0)
     {
-        (IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>) load = await _engine.BringAll(offset:offset, capacity:capacity);
+        var load = await _engine.BringAll(offset:offset, capacity:capacity);
+
         var artists = await _mapper.GetEntityProjections<ArtistMap, Artist>(load.Item1);
         var playlists = await _mapper.GetEntityProjections<PlaylistMap, Playlist>(load.Item2);
         var tracks = await _mapper.GetEntityProjections<TrackMap, Track>(load.Item3);
-        offset += capacity;
-        artistOffset += capacity;
-        playlistOffset += capacity;
-        trackOfsset += capacity;
+        
         return (artists, playlists, tracks);
     }
 
-    public async Task<IEnumerable<T>> LoadEntities<T>()
+    public async Task<IEnumerable<T>> LoadEntities<T>(int offset)
     {
 
         if(typeof(T) == typeof(Artist))
         {
-            var maps = await _engine.Bring<ArtistMap>(artistOffset, capacity);
+            var maps = await _engine.Bring<ArtistMap>(offset, capacity);
             return await _mapper.GetEntityProjections<ArtistMap, T>(maps);
         }
         else if(typeof(T) == typeof(Playlist))
         {
-            var maps = await _engine.Bring<PlaylistMap>(playlistOffset, capacity);
+            var maps = await _engine.Bring<PlaylistMap>(offset, capacity);
             return await _mapper.GetEntityProjections<PlaylistMap, T>(maps);
         }
         else if(typeof(T) == typeof(Track))
         {
-            var maps = await _engine.Bring<TrackMap>(trackOfsset, capacity);
+            var maps = await _engine.Bring<TrackMap>(offset, capacity);
             return await _mapper.GetEntityProjections<TrackMap, T>(maps);
         }
         else if(typeof(T) == typeof(Tag))
         {
-            var maps = await _engine.Bring<TagMap>(tagOffset, capacity);
+            var maps = await _engine.Bring<TagMap>(offset, capacity);
             return await _mapper.GetEntityProjections<TagMap, T>(maps);
         }
         else throw new Exception("Could not load entities of your type.");
     }
-
-    //could not return in share instances
-    //return as mappable instances
-    public async Task<(T, Store, Store)> LoadSingleEntity<T>(Guid entityId)
-    {
-        T entityMap = await _engine.BringSingle<T>(entityId);
-        (Store, Store) stores = await LoadEntityRelations<T>(entityId);
-        return (entityMap, stores.Item1, stores.Item2); 
-    }
-
-    private async Task<(Store, Store)> LoadEntityRelations<T>(Guid id)
-    {
-        if (typeof(T) == typeof(ArtistMap)) //load stores for artist entity
-        {
-            var apStore = await _engine.BringStore(1, id);   
-            var atStore = await _engine.BringStore(3, id);
-            return (apStore, atStore);
-        }
-        else if (typeof(T) == typeof(PlaylistMap)) //loads stores for playlist entity
-        {
-            var paStore = await _engine.BringStore(2, id); 
-            var ptStore = await _engine.BringStore(5, id);
-            return (paStore, ptStore);
-        }
-        else if (typeof(T) == typeof(TrackMap)) // loads stores for track entity
-        {
-            var taStore = await _engine.BringStore(4, id);
-            var tpStore = await _engine.BringStore(6, id);
-            return (taStore, tpStore);
-        }
-        else if(typeof(T) == typeof(TagMap))
-        {
-            var tagStore = await _engine.BringStore(7, id);
-            return (tagStore, default);
-        }
-        throw new Exception($"Can not upload relationship.");
-    }
-
+    
     public async Task<IEnumerable<T>> LoadEntitiesById<T>(ICollection<Guid> idCollection)
     {
        var result = await _engine.BringItemsById<T>(idCollection); 
        return result;
     }
+
+
+
+    //here instead of using generic T have been implemented methods for each type
+    //reason is imposibility of implicit casting with T generic type.
+    public async Task<Artist> FetchArtist(Guid artistId)
+    {
+       var artistMap = await _engine.BringSingle<ArtistMap>(artistId);
+       var artist = _mapper.ExtractSingle<Artist>(artistMap);
+
+        var apStore = await _engine.BringStore(1, artist.Id);   
+        var atStore = await _engine.BringStore(3, artist.Id);
+
+        if((apStore.Tag == 1) && (apStore.Holder == artist.Id))
+        {
+            apStore.Relates.ToList().ForEach(r => artist.Playlists.Add(r));
+        }
+
+        if((atStore.Tag == 3) && (atStore.Holder == artist.Id))
+        {
+            atStore.Relates.ToList().ForEach(r => artist.Tracks.Add(r));
+        }
+        return artist;
+    }
+
+    public async Task<Playlist> FetchPlaylist(Guid playlistId)
+    {
+       var playlistMap = await _engine.BringSingle<PlaylistMap>(playlistId);
+       var playlist = _mapper.ExtractSingle<Playlist>(playlistMap);
+
+       var paStore = await _engine.BringStore(2, playlist.Id); 
+       var ptStore = await _engine.BringStore(5, playlist.Id);
+
+       if((paStore.Tag == 2) && (paStore.Holder == playlist.Id))
+       {
+           paStore.Relates.ToList().ForEach(r => playlist.Artists.Add(r));
+       }
+
+       if((ptStore.Tag == 5) && (ptStore.Holder == playlist.Id))
+       {
+           ptStore.Relates.ToList().ForEach(r => playlist.Tracky.Add(r));
+       }
+
+       return playlist;
+    }
+
+    public async Task<Track> FetchTrack(Guid trackId)
+    {
+       var trackMap = await _engine.BringSingle<TrackMap>(trackId);
+       var track = _mapper.ExtractSingle<Track>(trackMap);
+
+       var taStore = await _engine.BringStore(4, track.Id);
+       var tpStore = await _engine.BringStore(6, track.Id);
+
+        if((taStore.Tag == 4) && (taStore.Holder == track.Id))
+        {
+            taStore.Relates.ToList().ForEach(r => track.Artists.Add(r));
+        }
+
+        if((tpStore.Tag == 6) && (tpStore.Holder == track.Id))
+        {
+            tpStore.Relates.ToList().ForEach(r => track.Playlists.Add(r));
+        }
+        return track;
+    }
+ 
+    public async Task<Artist> ExtendArtist(Artist artist)
+    {
+        var apStore = await _engine.BringStore(1, artist.Id);   
+        var atStore = await _engine.BringStore(3, artist.Id);
+
+        if((apStore.Tag == 1) && (apStore.Holder == artist.Id))
+        {
+            apStore.Relates.ToList().ForEach(r => artist.Playlists.Add(r));
+        }
+
+        if((atStore.Tag == 3) && (atStore.Holder == artist.Id))
+        {
+            atStore.Relates.ToList().ForEach(r => artist.Tracks.Add(r));
+        }
+        return artist;
+    }
+   
+    public async Task<Playlist> ExtendPlaylist(Playlist playlist)
+    {
+        var paStore = await _engine.BringStore(2, playlist.Id); 
+        var ptStore = await _engine.BringStore(5, playlist.Id);
+
+        if((paStore.Tag == 2) && (paStore.Holder == playlist.Id))
+        {
+            paStore.Relates.ToList().ForEach(r => playlist.Artists.Add(r));
+        }
+
+        if((ptStore.Tag == 5) && (ptStore.Holder == playlist.Id))
+        {
+            ptStore.Relates.ToList().ForEach(r => playlist.Tracky.Add(r));
+        }
+
+        return playlist;
+    }
+
+    public async Task<Track> ExtendTrack(Track track)
+    {
+        var taStore = await _engine.BringStore(4, track.Id);
+        var tpStore = await _engine.BringStore(6, track.Id);
+
+        if((taStore.Tag == 4) && (taStore.Holder == track.Id))
+        {
+            taStore.Relates.ToList().ForEach(r => track.Artists.Add(r));
+        }
+
+        if((tpStore.Tag == 6) && (tpStore.Holder == track.Id))
+        {
+            tpStore.Relates.ToList().ForEach(r => track.Playlists.Add(r));
+        }
+        return track;
+    }
+
     #endregion
     
 }

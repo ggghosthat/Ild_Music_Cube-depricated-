@@ -58,7 +58,6 @@ public sealed class MapProfile : Profile
             .ForMember(dest => dest.IsValid, opt => opt.MapFrom(src => (src.IsValid == 1)?true:false ))
             .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.FromMilliseconds(src.Duration) ));
 
-
         CreateMap<ICollection<Guid>, Store>()
             .ConvertUsing((src) => GenerateStore(src));
 
@@ -109,6 +108,6 @@ public sealed class MapProfile : Profile
     private ICollection<Guid> GenerateCollection(Store store)
     {
         return store.Relates;
-    }
+    }    
     #endregion 
 }

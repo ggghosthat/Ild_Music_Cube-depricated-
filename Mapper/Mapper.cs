@@ -194,61 +194,6 @@ public sealed class Mapper : IDisposable
     }
 
 
-    public void ExtractSingle(IMappable mappedEntity, (Store, Store) stores)
-    {
-        if(mappedEntity is ArtistMap artistMap)
-        {
-            Artist = _mapper.Map<Artist>(artistMap);
-
-            if((stores.Item1.Tag == 1) && (stores.Item1.Holder == Artist.Id))
-            {
-                stores.Item1.Relates.ToList().ForEach(r => Artist.Playlists.Add(r));
-            }
-
-            if((stores.Item2.Tag == 3) && (stores.Item2.Holder == Artist.Id))
-            {
-                stores.Item2.Relates.ToList().ForEach(r => Artist.Tracks.Add(r));
-            }
-        }
-        else if(mappedEntity is PlaylistMap playlistMap)
-        {
-            Playlist = _mapper.Map<Playlist>(playlistMap);
-
-            if((stores.Item1.Tag == 2) && (stores.Item1.Holder == Playlist.Id))
-            {
-                stores.Item1.Relates.ToList().ForEach(r => Playlist.Artists.Add(r));
-            }
-
-            if((stores.Item2.Tag == 5) && (stores.Item2.Holder == Playlist.Id))
-            {
-                stores.Item2.Relates.ToList().ForEach(r => Playlist.Tracky.Add(r));
-            }
-        }
-        else if(mappedEntity is TrackMap trackMap)
-        {
-            Track = _mapper.Map<Track>(trackMap);
-
-            if((stores.Item1.Tag == 4) && (stores.Item1.Holder == Track.Id))
-            {
-                stores.Item1.Relates.ToList().ForEach(r => Track.Artists.Add(r));
-            }
-
-            if((stores.Item2.Tag == 6) && (stores.Item2.Holder == Track.Id))
-            {
-                stores.Item2.Relates.ToList().ForEach(r => Track.Playlists.Add(r));
-            }
-        }
-        else if(mappedEntity is TagMap tagMap)
-        {
-            Tag = _mapper.Map<Tag>(tagMap);
-
-            if((stores.Item1.Tag == 7) && (stores.Item1.Holder == Tag.Id))
-            {
-                //stores.Item1.Relates.ToList().ForEach(r => Tag.);
-            }
-        }
-    }
-
     public async Task<IEnumerable<TProjection>> GetEntityProjections<T, TProjection>(IEnumerable<T> raws)
     {
         var resultProjections = new ConcurrentQueue<TProjection>(); 
@@ -280,6 +225,12 @@ public sealed class Mapper : IDisposable
         return resultProjections;
     }
 
+
+    public T ExtractSingle<T>(IMappable mappedEntity) 
+    {      
+        T result = _mapper.Map<T>(mappedEntity);
+        return result;
+    }    
 
     public void Clean()
     {

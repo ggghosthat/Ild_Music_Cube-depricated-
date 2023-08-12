@@ -398,7 +398,7 @@ public class Engine
         {
             dapperQuery = "select TagID, Name, Color from tags where TagID = @id".AsMemory();
         }
-        else throw new Exception("Fuck you, I dont wanna search yo shit!");
+        else throw new Exception("No supported map type!");
 
         using (var connection = new SQLiteConnection(_connectionString.ToString()))
         {
