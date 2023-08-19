@@ -27,14 +27,12 @@ internal class Loader
 
         using (var connection = new SQLiteConnection(_connectionString.ToString()))
         {
+            await connection.OpenAsync();
             using (var multiQuery = await connection.QueryMultipleAsync(dapperQuery.ToString(), new {offset=offset, capacity=capacity}))
             {
                 artists = await multiQuery.ReadAsync<ArtistMap>();
                 playlists = await multiQuery.ReadAsync<PlaylistMap>();
                 tracks = await multiQuery.ReadAsync<TrackMap>(); 
-                Console.WriteLine(artists.FirstOrDefault());
-                Console.WriteLine(playlists.FirstOrDefault());
-                Console.WriteLine(tracks.FirstOrDefault());
             }
         }
 
@@ -45,6 +43,7 @@ internal class Loader
     {
         ReadOnlyMemory<char> dapperQuery;
         IEnumerable<T> result;
+
         if(typeof(T) == typeof(ArtistMap))
         {
             dapperQuery = "select AID, Name, Description, Avatar from artists where Id >= @offset and Id <= @capacity".AsMemory();
@@ -62,11 +61,13 @@ internal class Loader
             dapperQuery = "select TagID, Name, Color from tags where Id >= @offset and Id <= @capacity".AsMemory();
         }
         else return null;
-
+    
         using (var connection = new SQLiteConnection(_connectionString.ToString()))
         {
+            await connection.OpenAsync();
             result = await connection.QueryAsync<T>(dapperQuery.ToString(), new {offset=offset, capacity=capacity});
         }
+
         return result;
     }
 
@@ -94,6 +95,7 @@ internal class Loader
 
         using (var connection = new SQLiteConnection(_connectionString.ToString()))
         {
+            await connection.OpenAsync();
             result = await connection.QuerySingleAsync<T>(dapperQuery.ToString(), new {id=inputId.ToString()});
         }
         return result;
@@ -124,6 +126,7 @@ internal class Loader
         
         using (var connection = new SQLiteConnection(_connectionString.ToString()))
         {
+            await connection.OpenAsync();
             result = await connection.QueryAsync<T>(dapperQuery.ToString(), new {ids=ids.Select(i => i.ToString())} );
         }
         return result;
@@ -137,43 +140,43 @@ internal class Loader
         {
             case (1):
                 dapperQuery = @"select AID, PID from artists_playlists where AID = @id;".AsMemory();
-                var apPairs = PairsObtain<ApPair>(dapperQuery, id);
+                var apPairs = await PairsObtain<ApPair>(dapperQuery, id);
                 store.Holder = new Guid(apPairs.First().AID);
                 store.Relates = apPairs.Select(x => new Guid(x.PID)).ToList();
                 break;
             case (2):
                 dapperQuery = @"select PID, AID from artists_playlists where PID = @id;".AsMemory();
-                var paPairs = PairsObtain<ApPair>(dapperQuery, id);
+                var paPairs = await PairsObtain<ApPair>(dapperQuery, id);
                 store.Holder = new Guid(paPairs.First().PID);
                 store.Relates = paPairs.Select(x => new Guid(x.AID)).ToList();
                 break;
             case (3):
                 dapperQuery = @"select AID, TID from artists_tracks where AID = @id;".AsMemory();
-                var atPairs = PairsObtain<AtPair>(dapperQuery, id);
+                var atPairs = await PairsObtain<AtPair>(dapperQuery, id);
                 store.Holder = new Guid(atPairs.First().AID);
                 store.Relates = atPairs.Select(x => new Guid(x.TID)).ToList();
                 break;
             case (4):
                 dapperQuery = @"select TID, AID from artists_tracks where TID = @id;".AsMemory();
-                var taPairs = PairsObtain<AtPair>(dapperQuery, id);
+                var taPairs = await PairsObtain<AtPair>(dapperQuery, id);
                 store.Holder = new Guid(taPairs.First().TID);
                 store.Relates = taPairs.Select(x => new Guid(x.AID)).ToList();
                 break;
             case (5):
                 dapperQuery = @"select PID, TID from playlists_tracks where PID = @id;".AsMemory();
-                var ptPairs = PairsObtain<PtPair>(dapperQuery, id);
+                var ptPairs = await PairsObtain<PtPair>(dapperQuery, id);
                 store.Holder = new Guid(ptPairs.First().PID);
                 store.Relates = ptPairs.Select(x => new Guid(x.TID)).ToList();
                 break;
             case (6):
                 dapperQuery = @"select TID, PID from playlists_tracks where TID = @id;".AsMemory();
-                var tpPairs = PairsObtain<PtPair>(dapperQuery, id);
+                var tpPairs = await PairsObtain<PtPair>(dapperQuery, id);
                 store.Holder = new Guid(tpPairs.First().TID);
                 store.Relates = tpPairs.Select(x => new Guid(x.PID)).ToList();
                 break;
             case (7):
                 dapperQuery = "select TagID, IID from tags_instances where TagID = @id;".AsMemory();
-                var tagPairs = PairsObtain<TagPair>(dapperQuery, id);
+                var tagPairs = await PairsObtain<TagPair>(dapperQuery, id);
                 store.Holder = new Guid(tagPairs.First().TagId);
                 store.Relates = tagPairs.Select(x => new Guid(x.IID)).ToList();
                 break;
@@ -183,14 +186,14 @@ internal class Loader
         return store;
     }
  
-    private IEnumerable<T> PairsObtain<T>(ReadOnlyMemory<char> dapperQuery, Guid id)
+    private async Task<IEnumerable<T>> PairsObtain<T>(ReadOnlyMemory<char> dapperQuery, Guid id)
     {
         if(typeof(T) == typeof(ApPair) || typeof(T) == typeof(AtPair) || typeof(T) == typeof(PtPair))
         {
             IEnumerable<T> obtained;
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
-                obtained = connection.Query<T>(dapperQuery.ToString(), new {id=id.ToString()} );            
+                obtained = await connection.QueryAsync<T>(dapperQuery.ToString(), new {id=id.ToString()} );            
             }
             
             return obtained;
