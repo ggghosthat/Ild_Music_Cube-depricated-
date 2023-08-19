@@ -1,0 +1,110 @@
+using ShareInstances.Instances;
+using Cube.Mapper.Entities;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Data.SQLite;
+using Dapper;
+namespace Cube.Storage.Guido.Engine;
+public class Engine
+{
+    private string path;
+    private int capacity;
+    private ReadOnlyMemory<char> _connectionString;
+    private Fork fork;
+    private Loader loader;
+
+    public Engine(string path, int capacity)
+    {
+        this.path = path;
+        this.capacity = capacity;
+
+        var connectionString = $"Data Source = {this.path}";
+        _connectionString = connectionString.AsMemory();
+
+        fork = new Fork(ref connectionString);
+        loader = new (ref connectionString);
+    }
+
+    public void StartEngine()
+    {
+        try
+        {
+            if(!File.Exists(path))
+            {
+                SQLiteConnection.CreateFile(path);
+            }
+            using (var connection = new SQLiteConnection(_connectionString.ToString()))
+            {
+                connection.Execute("create table if not exists artists(Id integer primary key, AID text, Name varchar, Description varchar, Avatar blob)");
+                connection.Execute("create table if not exists playlists(Id integer primary key, PID text, Name varchar, Description varchar, Avatar blob)");
+                connection.Execute("create table if not exists tracks(Id integer primary key, TID text, Path varchar, Name varchar, Description varchar, Avatar blob, Valid integer, Duration integer)");
+                
+
+                connection.Execute("create table if not exists artists_playlists(Id integer primary key, AID text, PID text)");
+                connection.Execute("create table if not exists artists_tracks(Id integer primary key, AID text, TID text)");
+                connection.Execute("create table if not exists playlists_tracks(Id integer primary key, PID text, TID text)");
+
+
+                connection.Execute("create table if not exists tags(Id integer primary key, TagID text, Name text, Color text)");
+                connection.Execute("create table if not exists tags_instances(Id integer primary key, TagID text, IID text)");
+            }
+        }
+        catch(Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    public async Task Add<T>(T entity)
+    {
+        await fork.Add<T>(entity); 
+    }
+
+    public async Task AddStores(ICollection<Store> stores)
+    {
+       await fork.AddStores(stores); 
+    }
+
+    public async Task Edit<T>(T entity)
+    {
+        await fork.Edit<T>(entity);
+    }
+
+    public async Task EditStores(ICollection<Store> stores)
+    {
+        await fork.EditStores(stores);
+    }
+
+    public async Task Delete<T>(T entity)
+    {
+       await fork.Delete<T>(entity); 
+    }
+
+
+    public async Task<(IEnumerable<ArtistMap>, IEnumerable<PlaylistMap>, IEnumerable<TrackMap>)> BringAll(int offset, int inputCapacity)
+    {
+        return await loader.BringAll(offset, inputCapacity);
+    }
+
+    public async Task<IEnumerable<T>> Bring<T>(int offset, int inputCapacity)
+    {
+        return await loader.Bring<T>(offset, inputCapacity);
+    }
+
+    public async Task<T> BringSingle<T>(Guid inputId)
+    {
+        return await loader.BringSingle<T>(inputId);
+    }
+
+    public async Task<IEnumerable<T>> BringItemsById<T>(ICollection<Guid> ids)
+    {
+        return await loader.BringItemsById<T>(ids);
+    }
+
+    public async Task<Store> BringStore(int tag, Guid id)
+    {
+        return await loader.BringStore(tag, id);
+    }
+}

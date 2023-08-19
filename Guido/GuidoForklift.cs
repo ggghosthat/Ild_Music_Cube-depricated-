@@ -1,4 +1,5 @@
 using ShareInstances.Instances;
+using Cube.Storage.Guido.Engine;
 using Cube.Mapper;
 using Cube.Mapper.Entities;
 
@@ -23,7 +24,7 @@ public class GuidoForklift //Cars from pixar (lol)
     public GuidoForklift(in string dbPath,
                         int capacity = 300)
     {
-        _engine = new (dbPath);
+        _engine = new (dbPath, capacity);
         _mapper = new();
 
         this.capacity = capacity;
@@ -43,22 +44,22 @@ public class GuidoForklift //Cars from pixar (lol)
         if (entity is Artist artist)
         {
            var mappedArtist = _mapper.MakeSnapshot<Artist>(artist);
-           _engine.Add<ArtistMap>((ArtistMap)mappedArtist.Item1);           
-           _engine.AddStores(mappedArtist.Item2);
+           await _engine.Add<ArtistMap>((ArtistMap)mappedArtist.Item1);           
+           await _engine.AddStores(mappedArtist.Item2);
         }
         else if(entity is Playlist playlist)
         {
            playlist.DumpTracks(); 
            var mappedPlaylist = _mapper.MakeSnapshot<Playlist>(playlist);
-           _engine.Add<PlaylistMap>((PlaylistMap)mappedPlaylist.Item1);           
-           _engine.AddStores(mappedPlaylist.Item2);
+           await _engine.Add<PlaylistMap>((PlaylistMap)mappedPlaylist.Item1);           
+           await _engine.AddStores(mappedPlaylist.Item2);
 
         }
         else if(entity is Track track)
         {
            var mappedTrack = _mapper.MakeSnapshot<Track>(track);
-           _engine.Add<TrackMap>((TrackMap)mappedTrack.Item1);           
-           _engine.AddStores(mappedTrack.Item2);
+           await _engine.Add<TrackMap>((TrackMap)mappedTrack.Item1);           
+           await _engine.AddStores(mappedTrack.Item2);
 
         }
     }
@@ -69,21 +70,21 @@ public class GuidoForklift //Cars from pixar (lol)
         if (entity is Artist artist)
         {
            var mappedArtist = _mapper.MakeSnapshot<Artist>(artist);
-           _engine.Edit<ArtistMap>((ArtistMap)mappedArtist.Item1);           
-           _engine.EditStores(mappedArtist.Item2);
+           await _engine.Edit<ArtistMap>((ArtistMap)mappedArtist.Item1);           
+           await _engine.EditStores(mappedArtist.Item2);
         }
         else if(entity is Playlist playlist)
         {
            playlist.DumpTracks();
            var mappedPlaylist = _mapper.MakeSnapshot<Playlist>(playlist);
-           _engine.Edit<PlaylistMap>((PlaylistMap)mappedPlaylist.Item1);           
-           _engine.EditStores(mappedPlaylist.Item2);
+           await _engine.Edit<PlaylistMap>((PlaylistMap)mappedPlaylist.Item1);           
+           await _engine.EditStores(mappedPlaylist.Item2);
         }
         else if(entity is Track track)
         {
            var mappedTrack = _mapper.MakeSnapshot<Track>(track);
-           _engine.Edit<TrackMap>((TrackMap)mappedTrack.Item1);           
-           _engine.EditStores(mappedTrack.Item2);
+           await _engine.Edit<TrackMap>((TrackMap)mappedTrack.Item1);           
+           await _engine.EditStores(mappedTrack.Item2);
         }
     }
 
@@ -92,22 +93,22 @@ public class GuidoForklift //Cars from pixar (lol)
     {
         if (entity is Artist artist)
         {
-          _engine.Delete<Artist>(ref artist); 
+          await _engine.Delete<Artist>(artist); 
         }
         else if(entity is Playlist playlist)
         {
-          _engine.Delete<Playlist>(ref playlist); 
+          await _engine.Delete<Playlist>(playlist); 
         }
         else if(entity is Track track)
         {
-          _engine.Delete<Track>(ref track); 
+          await _engine.Delete<Track>(track); 
         }
 
     }
 
     public async Task<(IEnumerable<Artist>, IEnumerable<Playlist>, IEnumerable<Track>)> StartLoad(int offset=0)
     {
-        var load = await _engine.BringAll(offset:offset, capacity:capacity);
+        var load = await _engine.BringAll(offset:offset, inputCapacity:capacity);
 
         var artists = await _mapper.GetEntityProjections<ArtistMap, Artist>(load.Item1);
         var playlists = await _mapper.GetEntityProjections<PlaylistMap, Playlist>(load.Item2);
@@ -264,7 +265,5 @@ public class GuidoForklift //Cars from pixar (lol)
         }
         return track;
     }
-
     #endregion
-    
 }

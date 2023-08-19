@@ -19,9 +19,10 @@ public class Cube : ICube
     private int playlistOffset = 0;
     private int trackOffset = 0;
 
-    public int CubePage => 300;
+    private int pageCount = 300;
+    public int CubePage => pageCount;
 
-    public readonly string dbPath = Path.Combine(Environment.CurrentDirectory, "storage.db");
+    private string dbPath = Path.Combine(Environment.CurrentDirectory, "storage.db");
     private GuidoForklift guidoForklift;
 
     public IEnumerable<Artist> Artists {get; private set;}
@@ -39,8 +40,12 @@ public class Cube : ICube
         Tracks = load.Item3;
     }
 
+    public void SetPath(ref string inputPath)
+    {
+        dbPath = inputPath;
+    }
 
-    public async void AddArtistObj(Artist artist) 
+    public async Task AddArtistObj(Artist artist) 
     {
         await guidoForklift.AddEntity(artist);
         if((Artists.Count() + 1) < (artistOffset * CubePage))
@@ -49,7 +54,7 @@ public class Cube : ICube
         }
     }
 
-    public async void AddPlaylistObj(Playlist playlist) 
+    public async Task AddPlaylistObj(Playlist playlist) 
     {
         await guidoForklift.AddEntity(playlist);
         if((Playlists.Count() + 1) < (playlistOffset * CubePage))
@@ -58,7 +63,7 @@ public class Cube : ICube
         }
     }
 
-    public async void AddTrackObj(Track track) 
+    public async Task AddTrackObj(Track track) 
     {
         await guidoForklift.AddEntity(track);
         if((Tracks.Count() + 1) < (trackOffset * CubePage))
@@ -68,7 +73,7 @@ public class Cube : ICube
     }
 
 
-    public async void EditArtistObj(Artist artist) 
+    public async Task EditArtistObj(Artist artist) 
     {
         await guidoForklift.EditEntity(artist);
         if(Artists.Any(artist => artist.Id == artist.Id))
@@ -77,7 +82,7 @@ public class Cube : ICube
         }
     }    
 
-    public async void EditPlaylistObj(Playlist playlist)
+    public async Task EditPlaylistObj(Playlist playlist)
     {
         await guidoForklift.EditEntity(playlist);
         if(Playlists.Any(playlist => playlist.Id == playlist.Id))
@@ -86,7 +91,7 @@ public class Cube : ICube
         }
     }
 
-    public async void EditTrackObj(Track track)
+    public async Task EditTrackObj(Track track)
     {
         await guidoForklift.EditEntity(track);
         if(Tracks.Any(track => track.Id == track.Id))
@@ -96,7 +101,7 @@ public class Cube : ICube
     }
 
 
-    public async void RemoveArtistObj(Artist artist) 
+    public async Task RemoveArtistObj(Artist artist) 
     {
         await guidoForklift.DeleteEntity(artist);
         if((Artists.Count() - 1) < (artistOffset * CubePage))
@@ -105,7 +110,7 @@ public class Cube : ICube
         }
     }
 
-    public async void RemovePlaylistObj(Playlist playlist)
+    public async Task RemovePlaylistObj(Playlist playlist)
     {
         await guidoForklift.DeleteEntity(playlist);
         if((Playlists.Count() - 1) < (playlistOffset * CubePage))
@@ -114,7 +119,7 @@ public class Cube : ICube
         }
     }
 
-    public async void RemoveTrackObj(Track track) 
+    public async Task RemoveTrackObj(Track track) 
     {
         await guidoForklift.DeleteEntity(track);
         if((Tracks.Count() - 1) < (trackOffset * CubePage))
@@ -124,7 +129,7 @@ public class Cube : ICube
     }
 
 
-    public async void LoadItems<T>()
+    public async Task LoadItems<T>()
     {
         if(typeof(T) == typeof(Artist))
         {
@@ -172,17 +177,17 @@ public class Cube : ICube
     }
 
     
-    public async Task<Artist> ExtendSingleArtist(Artist artist)
+    public async Task<Artist> ExtendSingle(Artist artist)
     {
         return await guidoForklift.ExtendArtist(artist);
     }
 
-    public async Task<Playlist> ExtendSinglePlaylist(Playlist playlist)
+    public async Task<Playlist> ExtendSingle(Playlist playlist)
     {
         return await guidoForklift.ExtendPlaylist(playlist);
     }
 
-    public async Task<Track> ExtendSingleTrack(Track track)
+    public async Task<Track> ExtendSingle(Track track)
     {
         return await guidoForklift.ExtendTrack(track);
     }

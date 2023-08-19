@@ -13,20 +13,20 @@ public sealed class MapProfile : Profile
     public MapProfile()
     {
         CreateMap<Artist, ArtistMap>()
-            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.AID, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.ToString()))
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()));
 
         CreateMap<Playlist, PlaylistMap>()
-            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.PID, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.ToString()))
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()));
 
         CreateMap<Track, TrackMap>()
-            .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToString()))
-            .ForMember(dest => dest.Pathway, opt => opt.MapFrom(src => src.Pathway.ToString() ))
+            .ForMember(dest => dest.TID, opt => opt.MapFrom(src => src.Id.ToString()))
+            .ForMember(dest => dest.Path, opt => opt.MapFrom(src => src.Pathway.ToString() ))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.ToString()))
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()))
@@ -38,20 +38,20 @@ public sealed class MapProfile : Profile
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()));
 
         CreateMap<ArtistMap, Artist>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => new Guid(src.Buid) ))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => new Guid(src.AID) ))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.AsMemory() ))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.AsMemory() ))
             .ForMember(dest => dest.AvatarSource, opt => opt.MapFrom(src => src.Avatar.AsMemory() ));
 
         CreateMap<PlaylistMap, Playlist>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => new Guid(src.Buid) ))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => new Guid(src.PID) ))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.AsMemory() ))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.AsMemory() ))
             .ForMember(dest => dest.AvatarSource, opt => opt.MapFrom(src => src.Avatar.AsMemory() ));
 
         CreateMap<TrackMap, Track>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => new Guid(src.Buid) ))
-            .ForMember(dest => dest.Pathway, opt => opt.MapFrom(src => src.Pathway.AsMemory() ))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => new Guid(src.TID) ))
+            .ForMember(dest => dest.Pathway, opt => opt.MapFrom(src => src.Path.AsMemory() ))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.AsMemory() ))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.AsMemory() ))
             .ForMember(dest => dest.AvatarSource, opt => opt.MapFrom(src => src.Avatar.AsMemory() ))

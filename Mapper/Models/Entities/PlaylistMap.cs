@@ -3,8 +3,8 @@ using System;
 namespace Cube.Mapper.Entities;
 public record PlaylistMap : IMappable
 {
-    public string Buid {get; set;}
+    public string PID {get; set;}
     public string Name {get; set;}
     public string Description {get; set;}
-    public string Avatar {get; set;}
+    public byte[] Avatar {get; set;}
 }
