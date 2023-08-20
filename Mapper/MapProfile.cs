@@ -16,13 +16,17 @@ public sealed class MapProfile : Profile
             .ForMember(dest => dest.AID, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.ToString()))
-            .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()));
+            .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()))
+            .ForMember(dest => dest.Year, opt => opt.MapFrom(src => src.Year));
+            
 
         CreateMap<Playlist, PlaylistMap>()
             .ForMember(dest => dest.PID, opt => opt.MapFrom(src => src.Id.ToString()))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.ToString()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.ToString()))
-            .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()));
+            .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()))
+            .ForMember(dest => dest.Year, opt => opt.MapFrom(src => src.Year));
+
 
         CreateMap<Track, TrackMap>()
             .ForMember(dest => dest.TID, opt => opt.MapFrom(src => src.Id.ToString()))
@@ -31,7 +35,8 @@ public sealed class MapProfile : Profile
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.ToString()))
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.AvatarSource.ToArray()))
             .ForMember(dest => dest.IsValid, opt => opt.MapFrom(src => src.IsValid?1:0))
-            .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.TotalMilliseconds));
+            .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration.TotalMilliseconds))
+            .ForMember(dest => dest.Year, opt => opt.MapFrom(src => src.Year));
 
         CreateMap<Tag, TagMap>()
             .ForMember(dest => dest.Buid, opt => opt.MapFrom(src => src.Id.ToString()))
@@ -41,13 +46,15 @@ public sealed class MapProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => new Guid(src.AID) ))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.AsMemory() ))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.AsMemory() ))
-            .ForMember(dest => dest.AvatarSource, opt => opt.MapFrom(src => src.Avatar.AsMemory() ));
+            .ForMember(dest => dest.AvatarSource, opt => opt.MapFrom(src => src.Avatar.AsMemory() ))
+            .ForMember(dest => dest.Year, opt => opt.MapFrom(src => src.Year ));
 
         CreateMap<PlaylistMap, Playlist>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => new Guid(src.PID) ))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name.AsMemory() ))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.AsMemory() ))
-            .ForMember(dest => dest.AvatarSource, opt => opt.MapFrom(src => src.Avatar.AsMemory() ));
+            .ForMember(dest => dest.AvatarSource, opt => opt.MapFrom(src => src.Avatar.AsMemory() ))
+            .ForMember(dest => dest.Year, opt => opt.MapFrom(src => src.Year ));
 
         CreateMap<TrackMap, Track>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => new Guid(src.TID) ))
@@ -56,7 +63,8 @@ public sealed class MapProfile : Profile
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.AsMemory() ))
             .ForMember(dest => dest.AvatarSource, opt => opt.MapFrom(src => src.Avatar.AsMemory() ))
             .ForMember(dest => dest.IsValid, opt => opt.MapFrom(src => (src.IsValid == 1)?true:false ))
-            .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.FromMilliseconds(src.Duration) ));
+            .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => TimeSpan.FromMilliseconds(src.Duration) ))
+            .ForMember(dest => dest.Year, opt => opt.MapFrom(src => src.Year ));
 
         CreateMap<ICollection<Guid>, Store>()
             .ConvertUsing((src) => GenerateStore(src));

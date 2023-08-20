@@ -10,4 +10,5 @@ public record TrackMap : IMappable
     public byte[] Avatar {get; set;}
     public int IsValid {get; set;}
     public int Duration {get; set;}
+    public int Year {get; set;}
 }

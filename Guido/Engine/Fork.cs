@@ -20,7 +20,7 @@ internal class Fork
         ReadOnlyMemory<char> dapperQuery;
         if (entity is ArtistMap artist)
         {
-            dapperQuery = "insert or ignore into artists(AID, Name, Description, Avatar) values (@AID, @Name, @Description, @Avatar)".AsMemory();
+            dapperQuery = "insert or ignore into artists(AID, Name, Description, Year, Avatar) values (@AID, @Name, @Description, @Year, @Avatar)".AsMemory();
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {                
                 await connection.OpenAsync();
@@ -29,7 +29,7 @@ internal class Fork
         }
         else if (entity is PlaylistMap playlist)
         {
-            dapperQuery = "insert or ignore into playlists(PID, Name, Description, Avatar) values (@PID, @Name, @Description, @Avatar)".AsMemory();
+            dapperQuery = "insert or ignore into playlists(PID, Name, Description, Year, Avatar) values (@PID, @Name, @Description, @Year, @Avatar)".AsMemory();
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
                 await connection.OpenAsync();
@@ -38,7 +38,7 @@ internal class Fork
         }
         else if (entity is TrackMap track)
         {
-            dapperQuery = "insert or ignore into tracks(TID, Path, Name, Description, Avatar, Valid, Duration) values (@TID, @Path, @Name, @Description, @Avatar, @IsValid, @Duration)".AsMemory();
+            dapperQuery = "insert or ignore into tracks(TID, Path, Name, Description, Year, Avatar, Valid, Duration) values (@TID, @Path, @Name, @Description, @Year, @Avatar, @IsValid, @Duration)".AsMemory();
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
                 await connection.OpenAsync();
@@ -150,7 +150,7 @@ internal class Fork
         ReadOnlyMemory<char> dapperQuery;
         if (entity is ArtistMap artist)
         {
-            dapperQuery = "update artists set Name = @Name, Description = @Description, Avatar = @Avatar where AID = @AID".AsMemory();
+            dapperQuery = "update artists set Name = @Name, Description = @Description, Year = @Year, Avatar = @Avatar where AID = @AID".AsMemory();
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
                 await connection.OpenAsync();
@@ -159,7 +159,7 @@ internal class Fork
         }
         else if (entity is PlaylistMap playlist)
         {
-            dapperQuery = "update playlists set Name = @Name, Description = @Description, Avatar = @Avatar where PID = @PID".AsMemory();
+            dapperQuery = "update playlists set Name = @Name, Description = @Description, Year = @Year, Avatar = @Avatar where PID = @PID".AsMemory();
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
                 await connection.OpenAsync();
@@ -169,7 +169,7 @@ internal class Fork
         }
         else if (entity is TrackMap track)
         {
-            dapperQuery = "update tracks set Path = @Pathway, Name = @Name, Description = @Description, Avatar = @Avatar, Valid = @IsValid, Duration = @Duration where TID = @TID".AsMemory();
+            dapperQuery = "update tracks set Path = @Pathway, Name = @Name, Description = @Description, Year = @Year, Avatar = @Avatar, Valid = @IsValid, Duration = @Duration where TID = @TID".AsMemory();
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
                 await connection.OpenAsync();
@@ -280,9 +280,9 @@ internal class Fork
         ReadOnlyMemory<char> dapperQuery;
         if(entity is Artist artist)
         {
-        dapperQuery = @"delete from artists where AID = @aid;
-                            delete from artists_playlists where AID = @aid;
-                            delete from artists_tracks where AID = @aid;".AsMemory();
+        dapperQuery = @"delete from artists where AID = @aid;
+                        delete from artists_playlists where AID = @aid;
+                        delete from artists_tracks where AID = @aid;".AsMemory();
 
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {

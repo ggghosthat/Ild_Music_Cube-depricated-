@@ -21,9 +21,9 @@ internal class Loader
         IEnumerable<PlaylistMap> playlists = null;
         IEnumerable<TrackMap> tracks = null;
 
-        ReadOnlyMemory<char> dapperQuery = @"select AID, Name, Description, Avatar from artists where Id >= @offset and Id <= @capacity;
-                                           select PID, Name, Description, Avatar from playlists where Id >= @offset and Id <= @capacity;
-                                           select TID, Path, Name, Description, Avatar, Valid, Duration from tracks where Id >= @offset and Id <= @capacity;".AsMemory();
+        ReadOnlyMemory<char> dapperQuery = @"select AID, Name, Description, Avatar, Year from artists where Id >= @offset and Id <= @capacity;
+                                           select PID, Name, Description, Avatar, Year from playlists where Id >= @offset and Id <= @capacity;
+                                           select TID, Path, Name, Description, Avatar, Valid, Duration, Year from tracks where Id >= @offset and Id <= @capacity;".AsMemory();
 
         using (var connection = new SQLiteConnection(_connectionString.ToString()))
         {
@@ -46,15 +46,15 @@ internal class Loader
 
         if(typeof(T) == typeof(ArtistMap))
         {
-            dapperQuery = "select AID, Name, Description, Avatar from artists where Id >= @offset and Id <= @capacity".AsMemory();
+            dapperQuery = "select AID, Name, Description, Avatar, Year from artists where Id >= @offset and Id <= @capacity".AsMemory();
         }
         else if(typeof(T) == typeof(PlaylistMap))
         {
-            dapperQuery = "select PID, Name, Description, Avatar from playlists where Id >= @offset and Id <= @capacity".AsMemory();
+            dapperQuery = "select PID, Name, Description, Avatar, Year from playlists where Id >= @offset and Id <= @capacity".AsMemory();
         }
         else if(typeof(T) == typeof(TrackMap))
         {
-            dapperQuery = "select TID, Path, Name, Description, Avatar, Valid, Duration from tracks where Id >= @offset and Id <= @capacity".AsMemory();
+            dapperQuery = "select TID, Path, Name, Description, Avatar, Valid, Duration, Year from tracks where Id >= @offset and Id <= @capacity".AsMemory();
         }
         else if(typeof(T) == typeof(TagMap))
         {
@@ -77,15 +77,15 @@ internal class Loader
         T result;
         if(typeof(T) == typeof(ArtistMap))
         {
-            dapperQuery = "select AID, Name, Description, Avatar from artists where AID = @id".AsMemory();
+            dapperQuery = "select AID, Name, Description, Avatar, Year from artists where AID = @id".AsMemory();
         }
         else if(typeof(T) == typeof(PlaylistMap))
         {
-            dapperQuery = "select PID, Name, Description, Avatar from playlists where PID = @id".AsMemory();
+            dapperQuery = "select PID, Name, Description, Avatar, Year from playlists where PID = @id".AsMemory();
         }
         else if(typeof(T) == typeof(TrackMap))
         {
-            dapperQuery = "select TID, Path, Name, Description, Avatar, Valid, Duration from tracks where TID = @id".AsMemory();
+            dapperQuery = "select TID, Path, Name, Description, Avatar, Valid, Duration, Year from tracks where TID = @id".AsMemory();
         }
         else if(typeof(T) == typeof(TagMap))
         {
@@ -108,15 +108,15 @@ internal class Loader
 
         if(typeof(T) == typeof(ArtistMap))
         {
-            dapperQuery = "select AID, Name, Description, Avatar from artists where AID in @ids".AsMemory();
+            dapperQuery = "select AID, Name, Description, Avatar, Year from artists where AID in @ids".AsMemory();
         }
         else if(typeof(T) == typeof(PlaylistMap))
         {
-            dapperQuery = "select PID, Name, Description, Avatar from playlists where PID in @ids".AsMemory();
+            dapperQuery = "select PID, Name, Description, Avatar, Year from playlists where PID in @ids".AsMemory();
         }
         else if(typeof(T) == typeof(TrackMap))
         {
-            dapperQuery = "select TID, Path, Name, Description, Avatar, Valid, Duration from tracks where TID in @ids".AsMemory();
+            dapperQuery = "select TID, Path, Name, Description, Avatar, Valid, Duration, Year from tracks where TID in @ids".AsMemory();
         }
         else if(typeof(T) == typeof(TagMap))
         {

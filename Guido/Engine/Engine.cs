@@ -37,9 +37,9 @@ public class Engine
             }
             using (var connection = new SQLiteConnection(_connectionString.ToString()))
             {
-                connection.Execute("create table if not exists artists(Id integer primary key, AID text, Name varchar, Description varchar, Avatar blob)");
-                connection.Execute("create table if not exists playlists(Id integer primary key, PID text, Name varchar, Description varchar, Avatar blob)");
-                connection.Execute("create table if not exists tracks(Id integer primary key, TID text, Path varchar, Name varchar, Description varchar, Avatar blob, Valid integer, Duration integer)");
+                connection.Execute("create table if not exists artists(Id integer primary key, AID text, Name varchar, Description varchar, Year integer, Avatar blob)");
+                connection.Execute("create table if not exists playlists(Id integer primary key, PID text, Name varchar, Description varchar, Year integer, Avatar blob)");
+                connection.Execute("create table if not exists tracks(Id integer primary key, TID text, Path varchar, Name varchar, Description varchar, Year integer, Avatar blob, Valid integer, Duration integer)");
                 
 
                 connection.Execute("create table if not exists artists_playlists(Id integer primary key, AID text, PID text)");

@@ -31,10 +31,10 @@ public sealed class Mapper : IDisposable
     public IEnumerable<Track> Tracks => trackQueue.ToList();
     public IEnumerable<Tag> Tags => tagQueue.ToList();
 
-    public Artist Artist {get; private set;}
-    public Playlist Playlist {get; private set;}
-    public Track Track {get; private set;}
-    public Tag Tag {get; private set;}
+    //public Artist Artist {get; private set;}
+    //public Playlist Playlist {get; private set;}
+    //public Track Track {get; private set;}
+    //public Tag Tag {get; private set;}
 
     public Mapper()
     {  
@@ -46,11 +46,6 @@ public sealed class Mapper : IDisposable
         _mapper = new AutoMapper.Mapper(configure);
     }
 
-    #region Private Methods
-    
-   
-
-    #endregion
 
     #region Public Methods
     public (IMappable, IList<Store>) MakeSnapshot<T>(T entity)

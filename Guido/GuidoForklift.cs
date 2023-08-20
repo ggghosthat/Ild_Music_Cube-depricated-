@@ -213,7 +213,10 @@ public class GuidoForklift //Cars from pixar (lol)
         }
         return track;
     }
- 
+
+    //use extend methods when you fetched a bare instance without any dependencies
+    //for example playlist without tracks or track without artists. 
+    //In this case expend methods will come handy.
     public async Task<Artist> ExtendArtist(Artist artist)
     {
         var apStore = await _engine.BringStore(1, artist.Id);   
