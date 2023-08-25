@@ -12,8 +12,10 @@ public class Engine
     private string path;
     private int capacity;
     private ReadOnlyMemory<char> _connectionString;
+
     private Fork fork;
     private Loader loader;
+    private Validator validator;
 
     public Engine(string path, int capacity)
     {
@@ -23,8 +25,9 @@ public class Engine
         var connectionString = $"Data Source = {this.path}";
         _connectionString = connectionString.AsMemory();
 
-        fork = new Fork(ref connectionString);
+        fork = new (ref connectionString);
         loader = new (ref connectionString);
+        validator = new(ref connectionString);
     }
 
     public void StartEngine()
@@ -49,6 +52,10 @@ public class Engine
 
                 connection.Execute("create table if not exists tags(Id integer primary key, TagID text, Name text, Color text)");
                 connection.Execute("create table if not exists tags_instances(Id integer primary key, TagID text, IID text)");
+
+                connection.Execute("create index artists_index on artists(AID, lower(Name), Year)");
+                connection.Execute("create index playlists_index on playlists(PID, lower(Name), Year)");
+                connection.Execute("create index tracks_index on tracks(TID, Path, lower(Name), Year)");
             }
         }
         catch(Exception ex)

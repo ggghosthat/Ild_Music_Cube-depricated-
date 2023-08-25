@@ -192,4 +192,19 @@ public class Cube : ICube
         return await guidoForklift.ExtendTrack(track);
     }
 
+
+    public async Task<bool> CheckArtistIntegrity(Artist artist)
+    {        
+        return false;
+    }
+
+    public async Task<bool> CheckPlaylistIntegrity(Playlist playlist)
+    {
+        return false;
+    }
+
+    public async Task<bool> CheckTrackIntegrity(Track track)
+    {
+        return false;
+    }
 }
