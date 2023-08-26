@@ -13,10 +13,10 @@ internal class Fork
 
     private Validator validator;
 
-    public Fork(ref string connectionString)
+    public Fork(ref string connectionString, ref Validator validator)
     {
         _connectionString = connectionString;
-        validator = new (ref _connectionString);
+        this.validator = validator;
     }
 
     public async Task Add<T>(T entity)

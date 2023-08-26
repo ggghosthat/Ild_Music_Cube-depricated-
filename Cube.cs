@@ -1,6 +1,8 @@
 using ShareInstances;
 using ShareInstances.Instances;
+using ShareInstances.Statistics;
 using Cube.Storage;
+using Cube.Storage.Guido.Engine;
 using Cube.Mapper;
 using Cube.Mapper.Entities;
 
@@ -193,18 +195,45 @@ public class Cube : ICube
     }
 
 
-    public async Task<bool> CheckArtistIntegrity(Artist artist)
-    {        
-        return false;
+    public async Task<InspectFrame> CheckArtistRelates(Artist artist)
+    {              
+        var factPlaylistRelates = await guidoForklift.FilterRelates(1, artist.Playlists);
+        var factTrackRelates = await guidoForklift.FilterRelates(2, artist.Tracks);
+        
+        var diffPlaylists = artist.Playlists.Except(factTrackRelates);
+        var diffTracks = artist.Tracks.Except(factTrackRelates);
+        
+        return new InspectFrame(tag:0, 
+                                factPlaylistRelates.Count(),
+                                factTrackRelates.Count(),
+                                artist.Playlists.Count(),
+                                artist.Tracks.Count());
     }
 
-    public async Task<bool> CheckPlaylistIntegrity(Playlist playlist)
+    public async Task<InspectFrame> CheckPlaylistRelates(Playlist playlist)
     {
-        return false;
+        var factArtistRelates = await guidoForklift.FilterRelates(0, playlist.Artists);
+        var factTrackRelates = await guidoForklift.FilterRelates(2, playlist.Tracky);
+        
+        return new InspectFrame(tag:1, 
+                                factArtistRelates.Count(),
+                                factTrackRelates.Count(),
+                                playlist.Artists.Count(),
+                                playlist.Tracky.Count());
     }
 
-    public async Task<bool> CheckTrackIntegrity(Track track)
+    public async Task<InspectFrame> CheckTrackRelates(Track track)
     {
-        return false;
+        var factArtistRelates = await guidoForklift.FilterTrackRelates(track.Id, true);
+        var factPlaylistRelates = await guidoForklift.FilterTrackRelates(track.Id, false);
+   
+        return new InspectFrame(tag:2, 
+                                factArtistRelates.Count(),
+                                factPlaylistRelates.Count());
+    }
+
+    public async Task<CounterFrame> SnapCounterFrame()
+    {
+        return default;
     }
 }

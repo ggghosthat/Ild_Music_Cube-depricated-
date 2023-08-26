@@ -268,5 +268,17 @@ public class GuidoForklift //Cars from pixar (lol)
         }
         return track;
     }
+
+    public async Task<IEnumerable<Guid>> FilterRelates(int tag, ICollection<Guid> relates)
+    {
+        return await _engine.CheckRelates(tag, relates);
+    }
+
+    public async Task<IEnumerable<Guid>> FilterTrackRelates(Guid trackId, bool isArtist)
+    {
+        int tag = (isArtist)?4:6;
+        var store = await _engine.BringStore(tag, trackId);
+        return store.Relates;
+    }
     #endregion
 }

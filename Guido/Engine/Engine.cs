@@ -25,9 +25,9 @@ public class Engine
         var connectionString = $"Data Source = {this.path}";
         _connectionString = connectionString.AsMemory();
 
-        fork = new (ref connectionString);
-        loader = new (ref connectionString);
         validator = new(ref connectionString);
+        fork = new (ref connectionString, ref validator);
+        loader = new (ref connectionString);
     }
 
     public void StartEngine()
@@ -113,5 +113,16 @@ public class Engine
     public async Task<Store> BringStore(int tag, Guid id)
     {
         return await loader.BringStore(tag, id);
+    }
+
+    public async Task<IEnumerable<Guid>> CheckRelates(int tag, ICollection<Guid> guids)
+    {
+        if(tag == 0)
+            return await validator.ValidateArtists(guids);
+        else if(tag == 1)
+            return await validator.ValidatePlaylists(guids);
+        else if(tag == 2)
+            return await validator.ValidateTracks(guids);
+        else return default;
     }
 }
