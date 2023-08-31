@@ -11,12 +11,9 @@ internal class Fork
 {
     private string _connectionString;
 
-    private Validator validator;
-
-    public Fork(ref string connectionString, ref Validator validator)
+    public Fork(ref string connectionString)
     {
         _connectionString = connectionString;
-        this.validator = validator;
     }
 
     public async Task Add<T>(T entity)
@@ -69,90 +66,66 @@ internal class Fork
             switch(store.Tag)
             {
                 case(1):
-                    var relateAP = await validator.ValidatePlaylists(store.Relates);
-                    if(relateAP.Count() == 0)
-                        break;
-
                     dapperQuery = "insert into artists_playlists(AID, PID) select @aid, @pid where not EXISTS(SELECT 1 from artists_playlists where AID = @aid and PID = @pid)".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relateAP)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.ExecuteAsync(dapperQuery.ToString(), new {aid=store.Holder.ToString(), pid=relate.ToString() });
                         }
                     }
                     break;
                 case(2):
-                    var relateAT = await validator.ValidateTracks(store.Relates);
-                    if(relateAT.Count() == 0)
-                        break;
-
                     dapperQuery = "insert into artists_tracks(AID, TID) select @aid, @tid where not EXISTS(SELECT 1 from artists_tracks where AID = @aid and TID = @tid)".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relateAT)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.ExecuteAsync(dapperQuery.ToString(), new {aid=store.Holder.ToString(), tid=relate.ToString() });
                         }
                     }
                     break;
                 case(3):
-                    var relatePA = await validator.ValidateArtists(store.Relates);
-                    if(relatePA.Count() == 0)
-                        break;
-
                     dapperQuery = "insert into artists_playlists(AID, PID) select @aid, @pid where not EXISTS(SELECT 1 from artists_playlists where AID = @aid and PID = @pid)".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relatePA)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.ExecuteAsync(dapperQuery.ToString(), new {aid=relate.ToString(), pid=store.Holder.ToString() });
                         }
                     }
                     break;
                 case(4):
-                    var relatePT = await validator.ValidateArtists(store.Relates);
-                    if(relatePT.Count() == 0)
-                        break;
-
                     dapperQuery = "insert into playlists_tracks(PID, TID) select @pid, @tid where not EXISTS(SELECT 1 from playlists_tracks where PID = @pid and TID = @tid)".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relatePT)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.ExecuteAsync(dapperQuery.ToString(), new {pid=store.Holder.ToString(), tid=relate.ToString() });
                         }
                     }
                     break;
                 case(5):
-                    var relateTA = await validator.ValidateArtists(store.Relates);
-                    if(relateTA.Count() == 0)
-                        break;
-
                     dapperQuery = "insert into artists_tracks(AID, TID) select @aid, @tid where not EXISTS(SELECT 1 from artists_tracks where AID = @aid and TID = @tid)".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relateTA)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.ExecuteAsync(dapperQuery.ToString(), new {aid=relate.ToString(), tid=store.Holder.ToString() });
                         }
                     }
                     break;
                 case(6):
-                    var relateTP = await validator.ValidateArtists(store.Relates);
-                    if(relateTP.Count() == 0)
-                        break;
-
                     dapperQuery = "insert into playlists_tracks(PID, TID) select @pid, @tid where not EXISTS(SELECT 1 from playlists_tracks where PID = @pid and TID = @tid)".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relateTP)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.ExecuteAsync(dapperQuery.ToString(), new {pid=relate.ToString(), tid=store.Holder.ToString() });
                         }
@@ -216,96 +189,72 @@ internal class Fork
             switch(store.Tag)
             {
                 case(1):
-                    var relateAP = await validator.ValidatePlaylists(store.Relates);
-                    if(relateAP.Count() == 0)
-                        break;
-
                     dapperQuery = @"delete from artists_playlists where AID = @aid;
                                    insert into artists_playlists(AID, PID) select @aid, @pid where not EXISTS(SELECT 1 from artists_playlists where AID = @aid and PID = @pid);".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {   
                         await connection.OpenAsync();
-                        foreach(Guid relate in relateAP)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.QueryMultipleAsync(dapperQuery.ToString(), new {aid=store.Holder.ToString(), pid=relate.ToString() });
                         }
                     }
                     break;
                 case(2):
-                    var relateAT = await validator.ValidateTracks(store.Relates);
-                    if(relateAT.Count() == 0)
-                        break;
-
                     dapperQuery = @"delete from artists_tracks where AID = @aid;
                                     insert into artists_tracks(AID, TID) select @aid, @tid where not EXISTS(SELECT 1 from artists_tracks where AID = @aid and TID = @tid);".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relateAT)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.QueryMultipleAsync(dapperQuery.ToString(), new {aid=store.Holder.ToString(), tid=relate.ToString() });
                         }
                     }
                     break;
                 case(3):
-                    var relatePA = await validator.ValidateArtists(store.Relates);
-                    if(relatePA.Count() == 0)
-                        break;
-
                     dapperQuery = @"delete from artists_playlists where PID = @pid;
                                     insert into artists_playlists(AID, PID) select @aid, @pid where not EXISTS(SELECT 1 from artists_playlists where AID = @aid and PID = @pid);".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relatePA)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.QueryMultipleAsync(dapperQuery.ToString(), new {aid=relate.ToString(), pid=store.Holder.ToString() });
                         }
                     }
                     break;
                 case(4):
-                    var relatePT = await validator.ValidateArtists(store.Relates);
-                    if(relatePT.Count() == 0)
-                        break;
-
                     dapperQuery = @"delete from playlists_tracks where PID = @pid;
                                     insert into playlists_tracks(PID, TID) select @pid, @tid where not EXISTS(SELECT 1 from playlists_tracks where PID = @pid and TID = @tid);".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relatePT)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.QueryMultipleAsync(dapperQuery.ToString(), new {pid=store.Holder.ToString(), tid=relate.ToString() });
                         }
                     }
                     break;
                 case(5):
-                    var relateTA = await validator.ValidateArtists(store.Relates);
-                    if(relateTA.Count() == 0)
-                        break;
-
                     dapperQuery = @"delete from artists_tracks where TID = @tid;
                                     insert into artists_tracks(AID, TID) select @aid, @tid where not EXISTS(SELECT 1 from artists_tracks where AID = @aid and TID = @tid);".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relateTA)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.QueryMultipleAsync(dapperQuery.ToString(), new {aid=relate.ToString(), tid=store.Holder.ToString() });
                         }
                     }
                     break;
                 case(6):
-                    var relateTP = await validator.ValidateArtists(store.Relates);
-                    if(relateTP.Count() == 0)
-                        break;
-
                     dapperQuery = @"delete from playlists_tracks where TID = @tid;
                                     insert into playlists_tracks(PID, TID) select @pid, @tid where not EXISTS(SELECT 1 from playlists_tracks where PID = @pid and TID = @tid);".AsMemory();
                     using (var connection = new SQLiteConnection(_connectionString.ToString()))
                     {
                         await connection.OpenAsync();
-                        foreach(Guid relate in relateTP)
+                        foreach(Guid relate in store.Relates)
                         {
                             await connection.QueryMultipleAsync(dapperQuery.ToString(), new {pid=relate.ToString(), tid=store.Holder.ToString() });
                         }
