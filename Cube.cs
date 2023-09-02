@@ -32,10 +32,15 @@ public class Cube : ICube
     public IEnumerable<Track> Tracks {get; private set;}
 
 
-    public async void Init()
+    public void Init()
     {
         guidoForklift = new (in dbPath, CubePage);       
         guidoForklift.ForkliftUp();
+        LoadUp().Wait();
+    }
+
+    public async Task LoadUp()
+    {
         var load = await guidoForklift.StartLoad();
         Artists = load.Item1;
         Playlists = load.Item2;
@@ -59,6 +64,7 @@ public class Cube : ICube
     public async Task AddPlaylistObj(Playlist playlist) 
     {
         await guidoForklift.AddEntity(playlist);
+        Console.WriteLine(Playlists is null);
         if((Playlists.Count() + 1) < (playlistOffset * CubePage))
         {
            Playlists = await guidoForklift.LoadEntities<Playlist>(playlistOffset); 
@@ -106,7 +112,7 @@ public class Cube : ICube
     public async Task RemoveArtistObj(Artist artist) 
     {
         await guidoForklift.DeleteEntity(artist);
-        if((Artists.Count() - 1) < (artistOffset * CubePage))
+        if((Artists?.Count() - 1) < (artistOffset * CubePage))
         {
            Artists = await guidoForklift.LoadEntities<Artist>(artistOffset); 
         }
@@ -115,7 +121,7 @@ public class Cube : ICube
     public async Task RemovePlaylistObj(Playlist playlist)
     {
         await guidoForklift.DeleteEntity(playlist);
-        if((Playlists.Count() - 1) < (playlistOffset * CubePage))
+        if((Playlists?.Count() - 1) < (playlistOffset * CubePage))
         {
            Playlists = await guidoForklift.LoadEntities<Playlist>(playlistOffset); 
         }
@@ -124,7 +130,7 @@ public class Cube : ICube
     public async Task RemoveTrackObj(Track track) 
     {
         await guidoForklift.DeleteEntity(track);
-        if((Tracks.Count() - 1) < (trackOffset * CubePage))
+        if((Tracks?.Count() - 1) < (trackOffset * CubePage))
         {
            Tracks = await guidoForklift.LoadEntities<Track>(trackOffset); 
         }

@@ -282,7 +282,7 @@ internal class Fork
         ReadOnlyMemory<char> dapperQuery;
         if(entity is Artist artist)
         {
-        dapperQuery = @"delete from artists where AID = @aid;
+            dapperQuery = @"delete from artists where AID = @aid;
                         delete from artists_playlists where AID = @aid;
                         delete from artists_tracks where AID = @aid;".AsMemory();
 
