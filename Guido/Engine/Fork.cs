@@ -61,6 +61,8 @@ internal class Fork
     {
         stores.ToList().ForEach(async store => 
         {  
+            if(store.Relates is null || store.Relates.Count == 0)
+                return;
 
             ReadOnlyMemory<char> dapperQuery;
             switch(store.Tag)
@@ -185,6 +187,9 @@ internal class Fork
     {
        stores.ToList().ForEach(async store => 
         {   
+            if(store.Relates is null || store.Relates.Count == 0)
+                return;
+
             ReadOnlyMemory<char> dapperQuery;
             switch(store.Tag)
             {
