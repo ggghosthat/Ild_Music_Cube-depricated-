@@ -184,6 +184,11 @@ public class Cube : ICube
         }
     }
 
+    public async Task<IEnumerable<T>> Search<T>(ReadOnlyMemory<char> searchTerm)
+    {
+        return await guidoForklift.Search<T>(searchTerm);
+    }
+
     
     public async Task<Artist> ExtendSingle(Artist artist)
     {

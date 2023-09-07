@@ -16,13 +16,13 @@ public class Engine
     private Fork fork;
     private Loader loader;
     private Validator validator;
-
+    
     public Engine(string path, int capacity)
     {
         this.path = path;
         this.capacity = capacity;
 
-        var connectionString = $"Data Source = {this.path}";
+        var connectionString = $"Data Source = {path}";
         _connectionString = connectionString.AsMemory();
 
         validator = new(ref connectionString);
@@ -124,5 +124,5 @@ public class Engine
         else if(tag == 2)
             return await validator.ValidateTracks(guids);
         else return default;
-    }
+    } 
 }

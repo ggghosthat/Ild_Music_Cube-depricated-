@@ -2,6 +2,7 @@ using ShareInstances.Instances;
 using Cube.Storage.Guido.Engine;
 using Cube.Mapper;
 using Cube.Mapper.Entities;
+using Cube.Storage.Guido;
 
 using System;
 using System.Threading.Tasks;
@@ -17,15 +18,18 @@ public class GuidoForklift //Cars from pixar (lol)
 {
     private int capacity;
 
-    private static ConcurrentQueue<ReadOnlyMemory<char>> queries = new();
+    //private static ConcurrentQueue<ReadOnlyMemory<char>> queries = new();
     private static Engine _engine;
     private static Mapper.Mapper _mapper;
+    private Voyager voyager;
 
     public GuidoForklift(in string dbPath,
                         int capacity = 300)
     {
         _engine = new (dbPath, capacity);
         _mapper = new();
+        voyager = new (dbPath);
+
 
         this.capacity = capacity;
     }
@@ -150,6 +154,28 @@ public class GuidoForklift //Cars from pixar (lol)
     }
 
 
+
+    public async Task<IEnumerable<T>> Search<T>(ReadOnlyMemory<char> searchTerm)
+    {
+        if(typeof(T) == typeof(Artist))
+        {
+            var maps = await voyager.SearchArtists(searchTerm);
+            return await _mapper.GetEntityProjections<ArtistMap, T>(maps);
+        }
+        else if(typeof(T) == typeof(Playlist))
+        {
+            var maps = await voyager.SearchPlaylists(searchTerm);
+            return await _mapper.GetEntityProjections<PlaylistMap, T>(maps);
+        }
+        else if(typeof(T) == typeof(Track))
+        {
+            var maps = await voyager.SearchTracks(searchTerm);
+            return await _mapper.GetEntityProjections<TrackMap, T>(maps);
+        }
+        else throw new Exception("Could not load entities of your type."); 
+    }
+
+    
 
     //here instead of using generic T have been implemented methods for each type
     //reason is imposibility of implicit casting with T generic type.
