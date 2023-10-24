@@ -2,20 +2,16 @@ using ShareInstances;
 using ShareInstances.Instances;
 using ShareInstances.Statistics;
 using Cube.Storage;
-using Cube.Storage.Guido.Engine;
-using Cube.Mapper;
-using Cube.Mapper.Entities;
 
-using System;
-using System.IO;
-using System.Collections.Generic;
-
+using MediatR;
 namespace Cube;
 public class Cube : ICube
 {
     public Guid CubeId => Guid.NewGuid();
 
     public string CubeName => "Genezis Cube";
+
+    private IMediator? _mediator = default;
 
     private int artistOffset = 0;
     private int playlistOffset = 0;
@@ -25,11 +21,11 @@ public class Cube : ICube
     public int CubePage => pageCount;
 
     private string dbPath = Path.Combine(Environment.CurrentDirectory, "storage.db");
-    private GuidoForklift guidoForklift;
+    private GuidoForklift? guidoForklift = default;
 
-    public IEnumerable<Artist> Artists {get; private set;}
-    public IEnumerable<Playlist> Playlists {get; private set;}
-    public IEnumerable<Track> Tracks {get; private set;}
+    public IEnumerable<Artist>? Artists {get; private set;} = default;
+    public IEnumerable<Playlist>? Playlists {get; private set;} = default;
+    public IEnumerable<Track>? Tracks {get; private set;} = default;
 
 
     public void Init()
@@ -39,8 +35,16 @@ public class Cube : ICube
         LoadUp().Wait();
     }
 
+    public void ConnectMediator(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+
     public async Task LoadUp()
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         var load = await guidoForklift.StartLoad();
         Artists = load.Item1;
         Playlists = load.Item2;
@@ -54,8 +58,11 @@ public class Cube : ICube
 
     public async Task AddArtistObj(Artist artist) 
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         await guidoForklift.AddEntity(artist);
-        if((Artists.Count() + 1) < (artistOffset * CubePage))
+        if((Artists?.Count() + 1) < (artistOffset * CubePage))
         {
            Artists = await guidoForklift.LoadEntities<Artist>(artistOffset); 
         }
@@ -63,9 +70,12 @@ public class Cube : ICube
 
     public async Task AddPlaylistObj(Playlist playlist) 
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         await guidoForklift.AddEntity(playlist);
         Console.WriteLine(Playlists is null);
-        if((Playlists.Count() + 1) < (playlistOffset * CubePage))
+        if((Playlists?.Count() + 1) < (playlistOffset * CubePage))
         {
            Playlists = await guidoForklift.LoadEntities<Playlist>(playlistOffset); 
         }
@@ -73,8 +83,11 @@ public class Cube : ICube
 
     public async Task AddTrackObj(Track track) 
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         await guidoForklift.AddEntity(track);
-        if((Tracks.Count() + 1) < (trackOffset * CubePage))
+        if((Tracks?.Count() + 1) < (trackOffset * CubePage))
         {
            Tracks = await guidoForklift.LoadEntities<Track>(trackOffset); 
         }
@@ -83,6 +96,9 @@ public class Cube : ICube
 
     public async Task EditArtistObj(Artist artist) 
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         await guidoForklift.EditEntity(artist);
         if(Artists.Any(artist => artist.Id == artist.Id))
         {
@@ -92,6 +108,9 @@ public class Cube : ICube
 
     public async Task EditPlaylistObj(Playlist playlist)
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         await guidoForklift.EditEntity(playlist);
         if(Playlists.Any(playlist => playlist.Id == playlist.Id))
         {
@@ -101,6 +120,9 @@ public class Cube : ICube
 
     public async Task EditTrackObj(Track track)
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         await guidoForklift.EditEntity(track);
         if(Tracks.Any(track => track.Id == track.Id))
         {
@@ -111,6 +133,9 @@ public class Cube : ICube
 
     public async Task RemoveArtistObj(Artist artist) 
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         await guidoForklift.DeleteEntity(artist);
         if((Artists?.Count() - 1) < (artistOffset * CubePage))
         {
@@ -120,6 +145,9 @@ public class Cube : ICube
 
     public async Task RemovePlaylistObj(Playlist playlist)
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         await guidoForklift.DeleteEntity(playlist);
         if((Playlists?.Count() - 1) < (playlistOffset * CubePage))
         {
@@ -129,6 +157,9 @@ public class Cube : ICube
 
     public async Task RemoveTrackObj(Track track) 
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+  
         await guidoForklift.DeleteEntity(track);
         if((Tracks?.Count() - 1) < (trackOffset * CubePage))
         {
@@ -139,6 +170,9 @@ public class Cube : ICube
 
     public async Task LoadItems<T>()
     {
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         if(typeof(T) == typeof(Artist))
         {
             artistOffset++;
@@ -157,29 +191,32 @@ public class Cube : ICube
     }
 
     public async Task UnloadItems<T>()
-    {
+    {   
+        if(guidoForklift is null)
+            throw new NullReferenceException("Could not load up Guido forklift");
+
         if(typeof(T) == typeof(Artist))
         {
             artistOffset--;
-            var artistsList = Artists.ToList();
+            var artistsList = Artists?.ToList();
             int start = Artists.Count() - CubePage;
-            artistsList.RemoveRange(start, CubePage);
+            artistsList?.RemoveRange(start, CubePage);
             Artists = artistsList;
         }
         else if(typeof(T) == typeof(Playlist))
         {
             playlistOffset--;
-            var playlistList = Playlists.ToList();
+            var playlistList = Playlists?.ToList();
             int start = Playlists.Count() - CubePage;
-            playlistList.RemoveRange(start, CubePage);
+            playlistList?.RemoveRange(start, CubePage);
             Playlists = playlistList;
         }
         else if(typeof(T) == typeof(Track))
         {
             playlistOffset--;
-            var trackList = Tracks.ToList();
+            var trackList = Tracks?.ToList();
             int start = Tracks.Count() - CubePage;
-            trackList.RemoveRange(start, CubePage);
+            trackList?.RemoveRange(start, CubePage);
             Tracks = trackList;
         }
     }
